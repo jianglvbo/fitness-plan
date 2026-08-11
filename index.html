@@ -2101,7 +2101,7 @@ async function aiGeneratePlan() {
 1. days 数组必须正好 30 项，date 从今天起逐日递增（YYYY-MM-DD）
 2. 每餐 3-4 种食物，优先用用户 preferred_foods / 食物库里的；早30% 午40% 晚30% 热量配比
 3. 蛋白质优先保证达标；用食物库真实营养值核算
-4. 训练安排：若 plan_mode=detailed 且提供 weekly_schedule（1-7 对应周一至周日：cardio/strength/rest），严格按逐日类型安排——strength 日安排力量训练（若 split_type 为 ppl/upper-lower/bro 等分化类型，按对应肌群轮换安排动作），cardio 日安排有氧，rest 日 workout 为空数组；plan_mode=simple 则按 days_per_week 与 bias 常规安排
+4. 训练安排：若 plan_mode=detailed 且提供 weekly_schedule（1-7 对应周一至周日：cardio/strength/mixed/rest，mixed=力量+有氧），严格按逐日类型安排——strength 日安排力量训练（若 split_type 为 ppl/upper-lower/bro 等分化类型，按对应肌群轮换安排动作），cardio 日安排有氧，rest 日 workout 为空数组；plan_mode=simple 则按 days_per_week 与 bias 常规安排
 5. 每餐热量配比 早30% 午40% 晚30%；如 meal_preferences 提供某餐宏量偏好（proteinW/carbW/fatW：0偏少 1正常 2偏多 3很多），该餐按偏好侧重对应营养
 6. foodName / exerciseName 必须与库中名字完全一致，否则视为无效
 7. 不要在 JSON 之外输出任何解释、Markdown、思考过程——直接输出 JSON`;
@@ -2795,9 +2795,10 @@ function bindCustomSelects(root, onChange) {
     menu.addEventListener('click', e => {
       const opt = e.target.closest('.cx-opt'); if (!opt) return;
       wrap.dataset.val = opt.dataset.v;
-      const first = head.querySelector('span');
-      head.insertBefore(document.createTextNode(opt.textContent.trim()), first);
-      head.querySelectorAll('span').forEach(s => s.remove());
+      // 仅替换头部文本（保留箭头 span，清除旧文本节点，避免累加）
+      Array.from(head.childNodes).forEach(n => { if (n.nodeType === 3) n.remove(); });
+      const arrow = head.querySelector('.cx-arrow');
+      head.insertBefore(document.createTextNode(opt.textContent.trim()), arrow);
       menu.querySelectorAll('.cx-opt').forEach(o => o.classList.toggle('sel', o === opt));
       menu.classList.remove('show'); wrap.classList.remove('open');
       if (onChange) onChange(wrap, opt.dataset.v);
@@ -2825,7 +2826,7 @@ function openPlanSettings() {
   const sched = wp.weekSchedule || {};
   const meals = dp.meals || {};
   const actOpts = [[1.2, '久坐（几乎不运动）'], [1.375, '轻度（每周 1-3 次运动）'], [1.55, '中度（每周 3-5 次运动）'], [1.725, '高度（每周 6-7 次）']].map(([v, l]) => ({ v: String(v), label: l }));
-  const typeOpts = [{ v: 'cardio', label: '有氧' }, { v: 'strength', label: '力量' }, { v: 'rest', label: '休息' }];
+  const typeOpts = [{ v: 'cardio', label: '有氧' }, { v: 'strength', label: '力量' }, { v: 'mixed', label: '力量+有氧' }, { v: 'rest', label: '休息' }];
   const splitOpts = [{ v: 'none', label: '不分化（每次全身）' }, { v: 'upper-lower', label: '上下肢分化' }, { v: 'ppl', label: '三分化推拉腿（PPL）' }, { v: 'bro', label: '五分化（胸背肩腿臂）' }];
   const prefOpts = [[0, '偏少'], [1, '正常'], [2, '偏多'], [3, '很多']].map(([v, l]) => ({ v: String(v), label: l }));
   const weekHTML = WEEK_CN.map((wd, i) => `
