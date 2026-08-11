@@ -748,9 +748,6 @@ input[type=number]{-moz-appearance:textfield}
         <button class="btn sm" id="btnAddFood">＋ 新增食物</button>
       </div>
 
-      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 4c-2.5 0-4.5 1.8-4.5 4 0 .6.2 1.2.5 1.7C6 10.3 4.5 12 4.5 14c0 2.2 2.3 4 5.5 4.3h4c3.2-.3 5.5-2.1 5.5-4.3 0-2-1.5-3.7-3.5-4.3.3-.5.5-1.1.5-1.7 0-2.2-2-4-4.5-4z"/><path d="M12 4V2.5M9 6.5c.6 1 1.6 1.8 2.8 2.3M15 6.5c-.8 1-1.8 1.8-3 2.3"/></svg>食物库<span class="sub">每百克营养 · 卡片内折线为 100/200/300g 营养变化 · 点击卡片可编辑</span></div>
-      <div class="grid grid-3" id="foodGrid"></div>
-
       <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>摄入计划<span class="sub">设定每日目标营养，保存后驱动饮食清单</span></div>
       <div class="card">
         <div class="grid grid-4" style="margin-bottom:16px">
@@ -766,10 +763,10 @@ input[type=number]{-moz-appearance:textfield}
           <button class="btn sm" id="btnSaveDietPlan"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l5 5v13H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 3v6h8V3M7 21v-6h10v6"/></svg> 保存摄入计划</button>
         </div>
       </div>
-    </section>
 
-    <!-- ═══════════ 运动管理 ═══════════ -->
-    <section class="page" id="page-workout">
+<div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 4c-2.5 0-4.5 1.8-4.5 4 0 .6.2 1.2.5 1.7C6 10.3 4.5 12 4.5 14c0 2.2 2.3 4 5.5 4.3h4c3.2-.3 5.5-2.1 5.5-4.3 0-2-1.5-3.7-3.5-4.3.3-.5.5-1.1.5-1.7 0-2.2-2-4-4.5-4z"/><path d="M12 4V2.5M9 6.5c.6 1 1.6 1.8 2.8 2.3M15 6.5c-.8 1-1.8 1.8-3 2.3"/></svg>食物库<span class="sub">每百克营养 · 卡片内折线为 100/200/300g 营养变化 · 点击卡片可编辑</span></div>
+      <div class="grid grid-3" id="foodGrid"></div>
+    </section>id="page-workout">
       <div class="page-head">
         <div>
           <h1>运动管理</h1>
@@ -777,9 +774,6 @@ input[type=number]{-moz-appearance:textfield}
         </div>
         <button class="btn sm" id="btnAddExercise">＋ 新增运动</button>
       </div>
-
-      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg>运动库<span class="sub">MET 代谢当量 · 按 66kg 体重估算每 10 分钟消耗</span></div>
-      <div class="grid grid-3" id="exGrid"></div>
 
       <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>运动计划<span class="sub">设定每日运动目标，保存后驱动训练清单</span></div>
       <div class="card">
@@ -798,10 +792,10 @@ input[type=number]{-moz-appearance:textfield}
         <!-- 每日热量缺口实时计算 -->
         <div id="deficitSummary"></div>
       </div>
-    </section>
 
-    <!-- ═══════════ 我的信息 ═══════════ -->
-    <section class="page" id="page-me">
+<div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg>运动库<span class="sub">MET 代谢当量 · 按 66kg 体重估算每 10 分钟消耗</span></div>
+      <div class="grid grid-3" id="exGrid"></div>
+    </section>id="page-me">
       <div class="page-head">
         <div>
           <h1>我的信息</h1>
@@ -2595,9 +2589,15 @@ function bindTimelineActions() {
   });
 }
 function openAddFoodModal(meal) {
+  const mealLabel = MEAL_DEF.find(x => x.key === meal)?.label || meal;
+  const pool = state.dietPlan.foodIds.map(id => foodById(id)).filter(Boolean); // 仅计划食材
+  if (!pool.length) {
+    openModal(`<h3>添加食物到 ${mealLabel}</h3><p style="color:var(--text-2);font-size:13.5px;line-height:1.65;margin:8px 0 20px">计划食材为空。请先在<b>饮食管理 → 计划食材</b>中添加食材，再回来添加。</p><div class="modal-foot"><button class="btn" onclick="closeModal()">知道了</button></div>`);
+    return;
+  }
   const m = openModal(`
-    <h3>添加食物到 ${MEAL_DEF.find(x => x.key === meal)?.label || meal}</h3>
-    <div class="field" style="margin-bottom:12px"><label>食物</label><select id="af-food">${state.foods.map(f => `<option value="${f.id}">${esc(f.name)}（${f.kcal} kcal/100g）</option>`).join('')}</select></div>
+    <h3>添加食物到 ${mealLabel}</h3>
+    <div class="field" style="margin-bottom:12px"><label>食物（计划食材）</label><select id="af-food">${pool.map(f => `<option value="${f.id}">${esc(f.name)}（${f.kcal} kcal/100g）</option>`).join('')}</select></div>
     <div class="field" style="margin-bottom:12px"><label>摄入量 (g)</label><input type="number" id="af-grams" value="100" min="5" step="5"></div>
     <div class="field" style="margin-bottom:12px"><label>时间</label><input type="time" id="af-time" value="${MEAL_DEF.find(x => x.key === meal)?.time || '12:00'}"></div>
     <div class="modal-foot"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn" id="af-save">添加</button></div>
@@ -2613,9 +2613,12 @@ function openEditFoodModal(meal, ei) {
   const day = state.plan.days[activeDate];
   const foodsInMeal = day.diet.filter(d => d.meal === meal);
   const item = foodsInMeal[ei]; if (!item) return;
+  const pool = state.dietPlan.foodIds.map(id => foodById(id)).filter(Boolean); // 仅计划食材（含当前项兜底）
+  const poolIds = new Set(pool.map(f => f.id));
+  if (item.foodId && !poolIds.has(item.foodId)) { const cur = foodById(item.foodId); if (cur) pool.push(cur); }
   const m = openModal(`
     <h3>修改食物</h3>
-    <div class="field" style="margin-bottom:12px"><label>食物</label><select id="ef-food">${state.foods.map(f => `<option value="${f.id}" ${f.id === item.foodId ? 'selected' : ''}>${esc(f.name)}（${f.kcal} kcal/100g）</option>`).join('')}</select></div>
+    <div class="field" style="margin-bottom:12px"><label>食物（计划食材）</label><select id="ef-food">${pool.map(f => `<option value="${f.id}" ${f.id === item.foodId ? 'selected' : ''}>${esc(f.name)}（${f.kcal} kcal/100g）</option>`).join('')}</select></div>
     <div class="field-row" style="margin-bottom:12px">
       <div class="field"><label>摄入量 (g)</label><input type="number" id="ef-grams" value="${item.grams}" min="5" step="5"></div>
       <div class="field"><label>时间</label><input type="time" id="ef-time" value="${item.time}"></div>
@@ -2631,9 +2634,14 @@ function openEditFoodModal(meal, ei) {
   });
 }
 function openAddExerciseModal() {
+  const pool = state.workoutPlan.exerciseIds.map(id => exById(id)).filter(Boolean); // 仅计划运动
+  if (!pool.length) {
+    openModal(`<h3>添加运动</h3><p style="color:var(--text-2);font-size:13.5px;line-height:1.65;margin:8px 0 20px">偏好运动为空。请先在<b>运动管理 → 偏好运动</b>中添加运动，再回来添加。</p><div class="modal-foot"><button class="btn" onclick="closeModal()">知道了</button></div>`);
+    return;
+  }
   const m = openModal(`
     <h3>添加运动</h3>
-    <div class="field" style="margin-bottom:12px"><label>运动</label><select id="ae-ex">${state.exercises.map(e => `<option value="${e.id}">${esc(e.name)}（MET ${e.met}）</option>`).join('')}</select></div>
+    <div class="field" style="margin-bottom:12px"><label>运动（偏好运动）</label><select id="ae-ex">${pool.map(e => `<option value="${e.id}">${esc(e.name)}（MET ${e.met}）</option>`).join('')}</select></div>
     <div class="field-row" style="margin-bottom:12px">
       <div class="field"><label>时长 (分钟)</label><input type="number" id="ae-min" value="30" min="5" step="5"></div>
       <div class="field"><label>组数</label><input type="number" id="ae-sets" value="3" min="1"></div>
@@ -2652,9 +2660,12 @@ function openAddExerciseModal() {
 function openEditExerciseModal(wi) {
   const day = state.plan.days[activeDate];
   const item = day.workout[wi]; if (!item) return;
+  const pool = state.workoutPlan.exerciseIds.map(id => exById(id)).filter(Boolean); // 仅计划运动（含当前项兜底）
+  const poolIds = new Set(pool.map(e => e.id));
+  if (item.exId && !poolIds.has(item.exId)) { const cur = exById(item.exId); if (cur) pool.push(cur); }
   const m = openModal(`
     <h3>修改运动</h3>
-    <div class="field" style="margin-bottom:12px"><label>运动</label><select id="ee-ex">${state.exercises.map(e => `<option value="${e.id}" ${e.id === item.exId ? 'selected' : ''}>${esc(e.name)}（MET ${e.met}）</option>`).join('')}</select></div>
+    <div class="field" style="margin-bottom:12px"><label>运动（偏好运动）</label><select id="ee-ex">${pool.map(e => `<option value="${e.id}" ${e.id === item.exId ? 'selected' : ''}>${esc(e.name)}（MET ${e.met}）</option>`).join('')}</select></div>
     <div class="field-row" style="margin-bottom:12px">
       <div class="field"><label>时长 (分钟)</label><input type="number" id="ee-min" value="${item.minutes}" min="5" step="5"></div>
       <div class="field"><label>组数</label><input type="number" id="ee-sets" value="${item.sets}" min="1"></div>
