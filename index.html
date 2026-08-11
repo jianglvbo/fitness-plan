@@ -302,8 +302,15 @@ textarea{resize:vertical;min-height:70px}
 
 .main{flex:1;padding:26px 30px 90px;min-width:0}
 .page{display:none;max-width:1080px;margin:0 auto}
-.page.active{display:block;animation:pageIn .45s cubic-bezier(.22,1,.36,1)}
-@keyframes pageIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+.page.active{display:block}
+.page.enter-up{animation:pageInUp .5s cubic-bezier(.22,1,.36,1)}
+.page.enter-down{animation:pageInDown .5s cubic-bezier(.22,1,.36,1)}
+.page.leaving-up{display:block;animation:pageOutUp .32s ease forwards;pointer-events:none}
+.page.leaving-down{display:block;animation:pageOutDown .32s ease forwards;pointer-events:none}
+@keyframes pageInUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes pageInDown{from{opacity:0;transform:translateY(-26px)}to{opacity:1;transform:none}}
+@keyframes pageOutUp{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-22px)}}
+@keyframes pageOutDown{from{opacity:1;transform:none}to{opacity:0;transform:translateY(22px)}}
 .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap}
 .page-head h1{font-size:26px;font-weight:800;letter-spacing:-.3px}
 .page-head p{color:var(--text-3);font-size:13.5px;margin-top:4px}
@@ -1501,9 +1508,22 @@ function renderThemeGrid() {
 function switchMode(mode) { state.settings.mode = mode; saveState(); applyTheme(); }
 
 /* ---------- 导航 ---------- */
+let lastNav = 'plan';
+const NAV_ORDER = ['plan', 'diet', 'workout', 'me', 'settings'];
 function switchPage(nav) {
   // 会话守卫：未登录（含会话被清除）一律拦截回登录页
   if (!currentUser || !getSession()) { showLogin(); return; }
+  // 方向性滑动过渡：目标在下 → 新页从下方滑入、旧页向上滑出；反之亦然（过渡期间背景为渐变，不露白）
+  const cur = document.querySelector('.page.active');
+  const next = $('#page-' + nav);
+  if (cur && cur !== next) {
+    const down = NAV_ORDER.indexOf(nav) >= NAV_ORDER.indexOf(lastNav);
+    cur.classList.add(down ? 'leaving-up' : 'leaving-down');
+    setTimeout(() => { cur.classList.remove('leaving-up', 'leaving-down'); }, 360);
+    next.classList.add(down ? 'enter-up' : 'enter-down');
+    setTimeout(() => { next.classList.remove('enter-up', 'enter-down'); }, 540);
+  }
+  lastNav = nav;
   $$('.nav-item, .tb-item').forEach(b => b.classList.toggle('active', b.dataset.nav === nav));
   $$('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + nav));
   if (nav === 'me') renderMeCharts();
