@@ -193,12 +193,17 @@
    ============================================================ */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
+html{
+  background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg3) 100%) fixed;
+  overscroll-behavior:none;
+}
 body{
   font-family:var(--font); color:var(--text);
   background:linear-gradient(135deg,var(--bg1) 0%,var(--bg2) 50%,var(--bg3) 100%);
   background-attachment:fixed;
   transition:background .5s ease, color .3s ease;
   overflow-x:hidden;
+  overscroll-behavior:none;
 }
 /* 背景光斑 */
 .bg-blobs{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
