@@ -303,14 +303,14 @@ textarea{resize:vertical;min-height:70px}
 .main{flex:1;padding:26px 30px 90px;min-width:0}
 .page{display:none;max-width:1080px;margin:0 auto}
 .page.active{display:block}
-.page.enter-up{animation:pageInUp .5s cubic-bezier(.22,1,.36,1)}
-.page.enter-down{animation:pageInDown .5s cubic-bezier(.22,1,.36,1)}
-.page.leaving-up{display:block;animation:pageOutUp .32s ease forwards;pointer-events:none}
-.page.leaving-down{display:block;animation:pageOutDown .32s ease forwards;pointer-events:none}
-@keyframes pageInUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
-@keyframes pageInDown{from{opacity:0;transform:translateY(-26px)}to{opacity:1;transform:none}}
-@keyframes pageOutUp{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-22px)}}
-@keyframes pageOutDown{from{opacity:1;transform:none}to{opacity:0;transform:translateY(22px)}}
+.page.enter-up{animation:pageInUp .55s cubic-bezier(.4,0,.2,1)}
+.page.enter-down{animation:pageInDown .55s cubic-bezier(.4,0,.2,1)}
+.page.leaving-up{display:block;animation:pageOutUp .38s ease-in forwards;pointer-events:none}
+.page.leaving-down{display:block;animation:pageOutDown .38s ease-in forwards;pointer-events:none}
+@keyframes pageInUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes pageInDown{from{opacity:0;transform:translateY(-18px)}to{opacity:1;transform:none}}
+@keyframes pageOutUp{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-14px)}}
+@keyframes pageOutDown{from{opacity:1;transform:none}to{opacity:0;transform:translateY(14px)}}
 .page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:20px;flex-wrap:wrap}
 .page-head h1{font-size:26px;font-weight:800;letter-spacing:-.3px}
 .page-head p{color:var(--text-3);font-size:13.5px;margin-top:4px}
@@ -1519,9 +1519,9 @@ function switchPage(nav) {
   if (cur && cur !== next) {
     const down = NAV_ORDER.indexOf(nav) >= NAV_ORDER.indexOf(lastNav);
     cur.classList.add(down ? 'leaving-up' : 'leaving-down');
-    setTimeout(() => { cur.classList.remove('leaving-up', 'leaving-down'); }, 360);
+    setTimeout(() => { cur.classList.remove('leaving-up', 'leaving-down'); }, 420);
     next.classList.add(down ? 'enter-up' : 'enter-down');
-    setTimeout(() => { next.classList.remove('enter-up', 'enter-down'); }, 540);
+    setTimeout(() => { next.classList.remove('enter-up', 'enter-down'); }, 600);
   }
   lastNav = nav;
   $$('.nav-item, .tb-item').forEach(b => b.classList.toggle('active', b.dataset.nav === nav));
@@ -1997,6 +1997,41 @@ function buildMeal(foodIds, mealRatio, dayTarget, pref) {
   return items;
 }
 
+/* 按当日类型构造训练（有氧/力量/混合），供本地计划与 AI 输出修正共用 */
+function buildDayWorkout(dayType) {
+  const wp = state.workoutPlan, p = state.profile;
+  const bias = dayType === 'cardio' ? 'cardio' : dayType === 'strength' ? 'strength' : (wp.bias || 'mixed');
+  const exIds = wp.exerciseIds.length ? wp.exerciseIds : state.exercises.slice(0, 5).map(e => e.id);
+  const cardio = state.exercises.filter(e => e.cat === 'cardio' && exIds.includes(e.id));
+  const strength = state.exercises.filter(e => e.cat === 'strength' && exIds.includes(e.id));
+  const cPool = cardio.length ? cardio : state.exercises.filter(e => e.cat === 'cardio');
+  const sPool = strength.length ? strength : state.exercises.filter(e => e.cat === 'strength');
+  const workout = [];
+  let remainingKcal = wp.kcal || 400, remainingMin = wp.minutes || 45;
+  if (sPool.length && (bias === 'mixed' || bias === 'strength')) {
+    const ex = sPool[Math.floor(Math.random() * sPool.length)];
+    const min = clamp(Math.round(wp.minutes * 0.45 / 5) * 5, 15, 30);
+    workout.push({ exId: ex.id, minutes: min, sets: 3, reps: '8-12', rest: 90, cat: 'strength', time: '19:00' });
+    remainingKcal -= exerciseBurn(ex, min, p.weight); remainingMin -= min;
+  }
+  if (cPool.length && remainingKcal > 50) {
+    const ex = cPool[Math.floor(Math.random() * cPool.length)];
+    const min = clamp(Math.round(remainingMin / 5) * 5, 15, 60);
+    workout.push({ exId: ex.id, minutes: min, sets: 0, reps: '-', rest: 0, cat: 'cardio', time: '20:00' });
+  }
+  return workout;
+}
+/* 营养校准：按每日目标热量缩放食物克数（AI 输出不贴合参数时的兜底） */
+function calibrateDiet(diet, dayTarget) {
+  if (!diet.length || !dayTarget.kcal) return diet;
+  let kcal = 0;
+  diet.forEach(it => { const f = foodById(it.foodId); if (f) kcal += foodNutrition(f, it.grams).kcal; });
+  if (kcal <= 0) return diet;
+  const factor = clamp(dayTarget.kcal / kcal, 0.7, 1.35);
+  if (Math.abs(factor - 1) < 0.06) return diet;
+  return diet.map(it => ({ ...it, grams: Math.max(10, Math.round(it.grams * factor)) }));
+}
+
 /* 构建一整月计划（30 天，从今天开始） */
 function buildLocalPlan() {
   const dp = state.dietPlan, wp = state.workoutPlan;
@@ -2020,29 +2055,8 @@ function buildLocalPlan() {
       const pref = (dp.meals || {})[m.key];
       diet.push(...buildMeal(foodIds, m.ratio, dayTarget, pref).map(it => ({ ...it, meal: m.key, time: m.time, mealLabel: m.label })));
     });
-    // 训练：有氧 + 力量
-    const workout = [];
-    if (isTrain) {
-      const bias = dayType === 'cardio' ? 'cardio' : dayType === 'strength' ? 'strength' : (wp.bias || 'mixed');
-      const cardio = state.exercises.filter(e => e.cat === 'cardio' && exIds.includes(e.id));
-      const strength = state.exercises.filter(e => e.cat === 'strength' && exIds.includes(e.id));
-      const cPool = cardio.length ? cardio : state.exercises.filter(e => e.cat === 'cardio');
-      const sPool = strength.length ? strength : state.exercises.filter(e => e.cat === 'strength');
-      let remainingKcal = wp.kcal || 400, remainingMin = wp.minutes || 45;
-      // 力量训练 20-25 分钟
-      if (sPool.length && (bias === 'mixed' || bias === 'strength')) {
-        const ex = sPool[Math.floor(Math.random() * sPool.length)];
-        const min = clamp(Math.round(wp.minutes * 0.45 / 5) * 5, 15, 30);
-        workout.push({ exId: ex.id, minutes: min, sets: 3, reps: '8-12', rest: 90, cat: 'strength', time: '19:00' });
-        remainingKcal -= exerciseBurn(ex, min, p.weight); remainingMin -= min;
-      }
-      // 有氧补足剩余
-      if (cPool.length && remainingKcal > 50) {
-        const ex = cPool[Math.floor(Math.random() * cPool.length)];
-        const min = clamp(Math.round(remainingMin / 5) * 5, 15, 60);
-        workout.push({ exId: ex.id, minutes: min, sets: 1, reps: '-', rest: 0, cat: 'cardio', time: '20:00' });
-      }
-    }
+    // 训练：按当日类型构造（有氧/力量/混合）
+    const workout = isTrain ? buildDayWorkout(dayType) : [];
     plan.days[date] = { diet, workout };
   }
   return plan;
@@ -2134,7 +2148,7 @@ async function aiGeneratePlan() {
   return aiFetch({ model: s.aiModel, messages: [{ role: 'system', content: system }, { role: 'user', content: JSON.stringify(prompt) }], temperature: 0.7, max_tokens: 6000, response_format: { type: 'json_object' } }, '计划生成');
 }
 
-/* AI 30 天计划 → 内部结构（AI 未覆盖的天数用本地引擎补足，保证整月完整） */
+/* AI 30 天计划 → 内部结构（AI 未覆盖的天数用本地引擎补足；休息日强制无训练；营养校准贴合目标） */
 function mapAiPlan(parsed) {
   const p = state.profile, dp = state.dietPlan, wp = state.workoutPlan;
   const plan = { generatedAt: new Date().toISOString(), mode: 'ai', days: {} };
@@ -2144,26 +2158,36 @@ function mapAiPlan(parsed) {
   const fillFoodIds = dp.foodIds.length ? dp.foodIds : state.foods.filter(f => ['carb', 'protein', 'veg'].includes(f.cat)).map(f => f.id);
   for (let i = 0; i < 30; i++) {
     const date = addDays(week0, i);
+    const wd = (i % 7) + 1; // 周一 = 1
+    const dayType = (wp.weekSchedule && wp.weekSchedule[wd]) || 'rest';
     const d = aiDays[i];
+    let diet = [], workout = [];
     if (d && (d.diet || []).length) {
-      const diet = (d.diet || []).map(it => {
+      diet = (d.diet || []).map(it => {
         const f = state.foods.find(f => f.name === it.foodName) || state.foods.find(f => f.name.includes(it.foodName));
         const mealDef = MEAL_DEF.find(m => m.key === it.meal);
         return { foodId: f ? f.id : state.foods[0].id, grams: it.grams, meal: it.meal, time: mealDef ? mealDef.time : '12:00', mealLabel: mealDef ? mealDef.label : '加餐', fixed: true };
       });
-      const workout = (d.workout || []).map(w => {
+      workout = (d.workout || []).map(w => {
         const ex = state.exercises.find(e => e.name === w.exerciseName) || state.exercises.find(e => e.name.includes(w.exerciseName));
         return { exId: ex ? ex.id : state.exercises[0].id, minutes: w.minutes || 30, sets: w.sets || 3, reps: w.reps || '8-12', rest: 90, cat: ex ? ex.cat : 'cardio', time: '20:00' };
       });
-      plan.days[date] = { diet, workout };
     } else {
-      const diet = [];
-      MEAL_DEF.forEach(m => { const pref = (dp.meals || {})[m.key]; diet.push(...buildMeal(fillFoodIds, m.ratio, dayTarget, pref).map(it => ({ ...it, meal: m.key, time: m.time, mealLabel: m.label }))); });
-      plan.days[date] = { diet, workout: [] };
+      MEAL_DEF.forEach(m => {
+        const pref = (dp.meals || {})[m.key];
+        diet.push(...buildMeal(fillFoodIds, m.ratio, dayTarget, pref).map(it => ({ ...it, meal: m.key, time: m.time, mealLabel: m.label })));
+      });
     }
+    // 确定性修正：严格按周计划——休息日强制无训练；训练日若 AI 未安排则按类型补齐
+    if (dayType === 'rest') workout = [];
+    else if (!workout.length) workout = buildDayWorkout(dayType);
+    // 确定性修正：营养校准（贴合每日目标热量，偏差 >6% 按比例缩放克数）
+    diet = calibrateDiet(diet, dayTarget);
+    plan.days[date] = { diet, workout };
   }
   return plan;
 }
+
 /* 一键生成：串行三步（30 天计划 → 阶段预测 → AI 建议），进度弹窗展示 */
 async function generatePlan() {
   const btn = $('#btnGenerate'), txt = $('#genBtnText');
