@@ -1101,6 +1101,25 @@ const CAT_META = {
   yoga:    { label: '拉伸体态', color: '#C4B5FD' },
   daily:   { label: '日常活动', color: '#94A3B8' }
 };
+/* 力量训练部位分类（肩 / 胸 / 腹 / 手 / 腿） */
+const BODY_PARTS = {
+  shoulder: { label: '肩', color: '#f97316' },
+  chest:    { label: '胸', color: '#ef4444' },
+  core:     { label: '腹', color: '#eab308' },
+  arm:      { label: '手', color: '#8b5cf6' },
+  leg:      { label: '腿', color: '#22c55e' }
+};
+/* 器械清单 */
+const GEAR_LIST = [
+  { v: 'none', label: '无器械' },
+  { v: 'barbell', label: '杠铃' },
+  { v: 'dumbbell', label: '哑铃' },
+  { v: 'bar', label: '单杠' },
+  { v: 'machine', label: '固定器械' },
+  { v: 'band', label: '弹力带' },
+  { v: 'rope', label: '战绳' }
+];
+const GEAR_LABEL = Object.fromEntries(GEAR_LIST.map(g => [g.v, g.label]));
 /* 大类线性图标映射：食材按大组、运动按类别（简约扁平线性 · 尺寸统一） */
 const LIB_ICONS = {
   protein: { icon: 'food-meat',  color: '#F97316' },
@@ -1220,29 +1239,42 @@ const DEFAULT_EXERCISES = [
   { id: 'e-hiit',     name: 'HIIT 训练',       cat: 'cardio', met: 10.0, icon: 'hiit', color: '#f43f5e' },
   { id: 'e-hike',     name: '登山',            cat: 'cardio', met: 7.0,  icon: 'climb',color: '#65a30d' },
   { id: 'e-spinning', name: '动感单车',        cat: 'cardio', met: 8.5,  icon: 'bike', color: '#ea580c' },
-  { id: 'e-bench',    name: '卧推',            cat: 'strength', met: 4.0,  icon: 'dumbbell', color: '#f43f5e' },
-  { id: 'e-squat',    name: '深蹲',            cat: 'strength', met: 5.0,  icon: 'squat', color: '#ef4444' },
-  { id: 'e-deadlift', name: '硬拉',            cat: 'strength', met: 5.0,  icon: 'dumbbell', color: '#b91c1c' },
-  { id: 'e-pullup',   name: '引体向上',        cat: 'strength', met: 5.0,  icon: 'dumbbell', color: '#dc2626' },
-  { id: 'e-pushup',   name: '俯卧撑',          cat: 'strength', met: 3.8,  icon: 'press', color: '#fb7185' },
-  { id: 'e-crunch',   name: '卷腹',            cat: 'strength', met: 3.5,  icon: 'plank', color: '#f472b6' },
-  { id: 'e-plank',    name: '平板支撑',        cat: 'strength', met: 3.0,  icon: 'plank', color: '#e11d48' },
-  { id: 'e-curl',     name: '哑铃弯举',        cat: 'strength', met: 3.5,  icon: 'curl', color: '#f97316' },
-  { id: 'e-shoulder', name: '肩推',            cat: 'strength', met: 4.0,  icon: 'press', color: '#fb923c' },
-  { id: 'e-lunge',    name: '弓步蹲',          cat: 'strength', met: 4.5,  icon: 'squat', color: '#ef4444' },
-  { id: 'e-burpee',   name: '波比跳',          cat: 'strength', met: 8.0,  icon: 'hiit', color: '#dc2626' },
-  { id: 'e-battlerope', name: '战绳',          cat: 'strength', met: 8.0,  icon: 'rope', color: '#7f1d1d' },
+  { id: 'e-bench',    name: '卧推',            cat: 'strength', met: 4.0,  icon: 'dumbbell', color: '#f43f5e', part: 'chest', gear: 'barbell' },
+  { id: 'e-squat',    name: '深蹲',            cat: 'strength', met: 5.0,  icon: 'squat', color: '#ef4444', part: 'leg', gear: 'barbell' },
+  { id: 'e-deadlift', name: '硬拉',            cat: 'strength', met: 5.0,  icon: 'dumbbell', color: '#b91c1c', part: 'leg', gear: 'barbell' },
+  { id: 'e-pullup',   name: '引体向上',        cat: 'strength', met: 5.0,  icon: 'dumbbell', color: '#dc2626', part: 'arm', gear: 'bar' },
+  { id: 'e-pushup',   name: '俯卧撑',          cat: 'strength', met: 3.8,  icon: 'press', color: '#fb7185', part: 'chest', gear: 'none' },
+  { id: 'e-crunch',   name: '卷腹',            cat: 'strength', met: 3.5,  icon: 'plank', color: '#f472b6', part: 'core', gear: 'none' },
+  { id: 'e-plank',    name: '平板支撑',        cat: 'strength', met: 3.0,  icon: 'plank', color: '#e11d48', part: 'core', gear: 'none' },
+  { id: 'e-curl',     name: '哑铃弯举',        cat: 'strength', met: 3.5,  icon: 'curl', color: '#f97316', part: 'arm', gear: 'dumbbell' },
+  { id: 'e-shoulder', name: '哑铃肩推',        cat: 'strength', met: 4.0,  icon: 'press', color: '#fb923c', part: 'shoulder', gear: 'dumbbell' },
+  { id: 'e-lunge',    name: '弓步蹲',          cat: 'strength', met: 4.5,  icon: 'squat', color: '#ef4444', part: 'leg', gear: 'none' },
+  { id: 'e-burpee',   name: '波比跳',          cat: 'strength', met: 8.0,  icon: 'hiit', color: '#dc2626', part: 'leg', gear: 'none' },
+  { id: 'e-battlerope', name: '战绳',          cat: 'strength', met: 8.0,  icon: 'rope', color: '#7f1d1d', part: 'arm', gear: 'rope' },
+  /* 力量 · 杠铃系列（新增） */
+  { id: 'e-bbshoulder', name: '杠铃肩推',      cat: 'strength', met: 4.2,  icon: 'press', color: '#fb923c', part: 'shoulder', gear: 'barbell' },
+  { id: 'e-bbcurl',   name: '杠铃弯举',        cat: 'strength', met: 3.5,  icon: 'curl', color: '#f97316', part: 'arm', gear: 'barbell' },
+  { id: 'e-bbshrug',  name: '杠铃耸肩',        cat: 'strength', met: 3.5,  icon: 'press', color: '#eab308', part: 'shoulder', gear: 'barbell' },
+  /* 力量 · 无器械系列（新增） */
+  { id: 'e-glutebridge', name: '臀桥',         cat: 'strength', met: 3.0,  icon: 'squat', color: '#ef4444', part: 'leg', gear: 'none' },
+  { id: 'e-reversecrunch', name: '反向卷腹',   cat: 'strength', met: 3.0,  icon: 'plank', color: '#f472b6', part: 'core', gear: 'none' },
+  { id: 'e-superman', name: '超人式',          cat: 'strength', met: 3.0,  icon: 'plank', color: '#e11d48', part: 'core', gear: 'none' },
+  { id: 'e-shouldercirc', name: '肩部绕环',    cat: 'strength', met: 2.5,  icon: 'press', color: '#fb923c', part: 'shoulder', gear: 'none' },
+  { id: 'e-wallpushup', name: '靠墙俯卧撑',    cat: 'strength', met: 2.8,  icon: 'press', color: '#fb7185', part: 'chest', gear: 'none' },
+  { id: 'e-chairdips', name: '椅子臂屈伸',     cat: 'strength', met: 3.5,  icon: 'press', color: '#8b5cf6', part: 'arm', gear: 'none' },
+  { id: 'e-calfraise', name: '站姿提踵',       cat: 'strength', met: 3.0,  icon: 'squat', color: '#22c55e', part: 'leg', gear: 'none' },
+  { id: 'e-diamondpushup', name: '钻石俯卧撑', cat: 'strength', met: 3.8,  icon: 'press', color: '#a855f7', part: 'arm', gear: 'none' },
   { id: 'e-yoga',     name: '瑜伽',            cat: 'cardio', met: 2.5,  icon: 'plank', color: '#8b5cf6' },
   { id: 'e-pilates',  name: '普拉提',          cat: 'cardio', met: 3.0,  icon: 'plank', color: '#d946ef' },
   { id: 'e-boxing',   name: '拳击(沙袋)',      cat: 'cardio', met: 7.8,  icon: 'hiit', color: '#dc2626' },
   { id: 'e-stairmaster', name: '登山机',       cat: 'cardio', met: 8.0,  icon: 'climb', color: '#f97316' },
-  { id: 'e-latpull',  name: '高位下拉',        cat: 'strength', met: 4.5,  icon: 'dumbbell', color: '#f43f5e' },
-  { id: 'e-seatedrow', name: '坐姿划船',       cat: 'strength', met: 4.5,  icon: 'dumbbell', color: '#fb923c' },
-  { id: 'e-rdl',      name: '罗马尼亚硬拉',    cat: 'strength', met: 5.0,  icon: 'dumbbell', color: '#991b1b' },
-  { id: 'e-split',    name: '保加利亚分腿蹲',  cat: 'strength', met: 4.5,  icon: 'squat', color: '#dc2626' },
-  { id: 'e-bbrow',    name: '杠铃划船',        cat: 'strength', met: 5.0,  icon: 'dumbbell', color: '#b45309' },
-  { id: 'e-dbfly',    name: '哑铃飞鸟',        cat: 'strength', met: 3.5,  icon: 'press', color: '#f472b6' },
-  { id: 'e-sideraise', name: '侧平举',         cat: 'strength', met: 3.0,  icon: 'press', color: '#eab308' }
+  { id: 'e-latpull',  name: '高位下拉',        cat: 'strength', met: 4.5,  icon: 'dumbbell', color: '#f43f5e', part: 'arm', gear: 'machine' },
+  { id: 'e-seatedrow', name: '坐姿划船',       cat: 'strength', met: 4.5,  icon: 'dumbbell', color: '#fb923c', part: 'arm', gear: 'machine' },
+  { id: 'e-rdl',      name: '罗马尼亚硬拉',    cat: 'strength', met: 5.0,  icon: 'dumbbell', color: '#991b1b', part: 'leg', gear: 'barbell' },
+  { id: 'e-split',    name: '保加利亚分腿蹲',  cat: 'strength', met: 4.5,  icon: 'squat', color: '#dc2626', part: 'leg', gear: 'dumbbell' },
+  { id: 'e-bbrow',    name: '杠铃划船',        cat: 'strength', met: 5.0,  icon: 'dumbbell', color: '#b45309', part: 'arm', gear: 'barbell' },
+  { id: 'e-dbfly',    name: '哑铃飞鸟',        cat: 'strength', met: 3.5,  icon: 'press', color: '#f472b6', part: 'chest', gear: 'dumbbell' },
+  { id: 'e-sideraise', name: '侧平举',         cat: 'strength', met: 3.0,  icon: 'press', color: '#eab308', part: 'shoulder', gear: 'dumbbell' }
 ];
 
 function defaultState() {
@@ -1263,7 +1295,9 @@ function defaultState() {
     workoutPlan: {
       kcal: 400, minutes: 45, daysPerWeek: 5, bias: 'mixed', exerciseIds: ['e-jog', 'e-bench', 'e-squat', 'e-rope', 'e-plank'],
       splitType: 'none',
-      weekSchedule: { 1: 'cardio', 2: 'strength', 3: 'cardio', 4: 'strength', 5: 'cardio', 6: 'rest', 7: 'rest' }
+      weekSchedule: { 1: 'cardio', 2: 'strength', 3: 'cardio', 4: 'strength', 5: 'cardio', 6: 'rest', 7: 'rest' },
+      bodyParts: {},       // 每日训练部位：{ 1:'chest', 2:'leg', ... }（力量日）
+      myGear: ['none', 'barbell', 'dumbbell', 'bar', 'machine', 'band', 'rope']  // 我有的器械（默认全选）
     },
     records: [
       { date: addDays(todayStr(), -21), height: 178, weight: 68.2, bodyFat: 22.4, note: '开始记录' },
@@ -1347,6 +1381,18 @@ function migrateExerciseCats() {
   (state.exercises || []).forEach(e => {
     if (e.cat === 'cardio' && /走|散步|遛/.test(e.name)) { e.cat = 'daily'; changed = true; }
     if (!e.cat) { e.cat = 'cardio'; changed = true; }
+    // 力量运动：按内置 id 补部位/器械；自定义按名称关键词推断，兜底 胸/无器械
+    if (e.cat === 'strength') {
+      const builtin = DEFAULT_EXERCISES.find(d => d.id === e.id);
+      if (builtin && builtin.part) {
+        if (e.part !== builtin.part || e.gear !== builtin.gear) { e.part = builtin.part; e.gear = builtin.gear; changed = true; }
+      } else if (!e.part) {
+        const kw = e.name;
+        e.part = /深蹲|硬拉|弓步|腿|臀|提踵|波比/.test(kw) ? 'leg' : /推|卧推|俯卧撑/.test(kw) ? 'chest' : /卷腹|平板|支撑|超人/.test(kw) ? 'core' : /肩|侧平举|推举/.test(kw) ? 'shoulder' : /弯举|引体|划船|下拉|臂|拉/.test(kw) ? 'arm' : 'chest';
+        e.gear = /杠铃/.test(kw) ? 'barbell' : /哑铃/.test(kw) ? 'dumbbell' : /引体/.test(kw) ? 'bar' : /下拉|划船/.test(kw) ? 'machine' : 'none';
+        changed = true;
+      }
+    }
   });
   if (changed) saveState();
 }
@@ -1374,6 +1420,17 @@ function migratePlanParams() {
     dp.meals = { breakfast: { proteinW: 2, carbW: 1, fatW: 1 }, lunch: { proteinW: 1, carbW: 2, fatW: 1 }, dinner: { proteinW: 2, carbW: 1, fatW: 1 } };
     changed = true;
   }
+  if (!wp.bodyParts) {
+    // 按力量日（strength/mixed）循环分配部位：胸/肩/腿/手/腹
+    const parts = ['chest', 'shoulder', 'leg', 'arm', 'core'];
+    wp.bodyParts = {};
+    let pi = 0;
+    for (let d = 1; d <= 7; d++) {
+      if ((wp.weekSchedule[d] === 'strength' || wp.weekSchedule[d] === 'mixed')) { wp.bodyParts[d] = parts[pi % parts.length]; pi++; }
+    }
+    changed = true;
+  }
+  if (!wp.myGear) { wp.myGear = GEAR_LIST.map(g => g.v); changed = true; }
   if (state.planMode !== 'detailed') { state.planMode = 'detailed'; changed = true; } // 仅详细模式
   if (changed) saveState();
 }
@@ -1754,7 +1811,7 @@ function exCardHTML(e) {
       <div class="ico-badge sm" style="background:${badgeColor(li.color)}">${iconSvg(li.icon, li.color, 18)}</div>
       <div class="lc-info">
         <div class="lc-name">${esc(e.name)}</div>
-        <div class="lc-sub"><span class="badge" style="background:${badgeColor(CAT_META[e.cat]?.color)};color:${CAT_META[e.cat]?.color}">${CAT_META[e.cat]?.label || e.cat}</span> · MET ${e.met}</div>
+        <div class="lc-sub"><span class="badge" style="background:${badgeColor(CAT_META[e.cat]?.color)};color:${CAT_META[e.cat]?.color}">${CAT_META[e.cat]?.label || e.cat}</span>${e.cat === 'strength' && e.part ? `<span class="badge" style="background:${badgeColor(BODY_PARTS[e.part]?.color)};color:${BODY_PARTS[e.part]?.color}">${BODY_PARTS[e.part]?.label || ''}部</span><span class="mini" style="font-weight:600">${GEAR_LABEL[e.gear] ? '· ' + GEAR_LABEL[e.gear] : ''}</span>` : ''} · MET ${e.met}</div>
       </div>
       <div class="lc-ops"><button class="icon-btn" data-act="edit">${iconSvg('ui-edit', 'currentColor', 15)}</button><button class="icon-btn del" data-act="del">${iconSvg('ui-trash', 'currentColor', 15)}</button></div>
     </div>
@@ -1798,11 +1855,17 @@ function openExerciseModal(id = null) {
       <div class="field"><label>类别</label><select id="me-cat"><option value="strength" ${e0.cat === 'strength' ? 'selected' : ''}>力量塑形</option><option value="cardio" ${e0.cat === 'cardio' ? 'selected' : ''}>有氧燃脂</option><option value="yoga" ${e0.cat === 'yoga' ? 'selected' : ''}>拉伸体态</option><option value="daily" ${e0.cat === 'daily' ? 'selected' : ''}>日常活动</option></select></div>
       <div class="field"><label>MET 代谢当量</label><input type="number" id="me-met" value="${e0.met}" min="0.5" step="0.1"></div>
     </div>
+    <div class="field-row" id="me-partgear" style="margin-bottom:12px;${e0.cat !== 'strength' ? 'display:none' : ''}">
+      <div class="field"><label>训练部位</label>${cxSelectHTML('me-part', e0.part || 'chest', Object.entries(BODY_PARTS).map(([v, o]) => ({ v, label: o.label + '部' })))}</div>
+      <div class="field"><label>所需器械</label>${cxSelectHTML('me-gear', e0.gear || 'none', GEAR_LIST.map(g => ({ v: g.v, label: g.label })))}</div>
+    </div>
     <div class="field" style="margin-bottom:12px"><label>图标</label><div class="chip-row" id="me-icons">${icons.map(i => `<button class="chip ${e0.icon === i ? 'active' : ''}" data-icon="${i}" style="padding:6px 10px">${iconSvg(i, e0.color, 18)}</button>`).join('')}</div></div>
     <div class="field" style="margin-bottom:12px"><label>颜色</label><div class="chip-row" id="me-colors">${['#0ea5e9', '#6366f1', '#10b981', '#f59e0b', '#f43f5e', '#8b5cf6', '#14b8a6', '#f97316'].map(c => `<button class="chip ${e0.color === c ? 'active' : ''}" data-color="${c}" style="width:30px;height:30px;padding:0;border-radius:50%;background:${c};border:2px solid ${e0.color === c ? 'var(--text)' : 'transparent'}"></button>`).join('')}</div></div>
     <div class="field" style="margin-bottom:12px"><label>说明</label><p style="font-size:12px;color:var(--text-3)">每 10 分钟消耗约 <b style="color:var(--accent)">${Math.round(e0.met * 3.5 * 66 / 200 * 10)} kcal</b>（按 66kg 体重）</p></div>
     <div class="modal-foot"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn" id="me-save">${id ? '保存修改' : '添加'}</button></div>
   `);
+  bindCustomSelects(m);
+  m.querySelector('#me-cat').addEventListener('change', e => { m.querySelector('#me-partgear').style.display = e.target.value === 'strength' ? '' : 'none'; });
   let pickedIcon = e0.icon, pickedColor = e0.color;
   m.querySelector('#me-icons').addEventListener('click', e => {
     const b = e.target.closest('.chip'); if (!b) return;
@@ -1815,7 +1878,10 @@ function openExerciseModal(id = null) {
   m.querySelector('#me-save').addEventListener('click', () => {
     const name = m.querySelector('#me-name').value.trim();
     if (!name) return toast('请输入运动名称', 'err');
-    const data = { name, cat: m.querySelector('#me-cat').value, met: +m.querySelector('#me-met').value || 1, icon: pickedIcon, color: pickedColor };
+    const cat = m.querySelector('#me-cat').value;
+    const partWrap = m.querySelector('.cx-select[data-cx="me-part"]');
+    const gearWrap = m.querySelector('.cx-select[data-cx="me-gear"]');
+    const data = { name, cat, met: +m.querySelector('#me-met').value || 1, icon: pickedIcon, color: pickedColor, part: cat === 'strength' ? (partWrap?.dataset.val || 'chest') : undefined, gear: cat === 'strength' ? (gearWrap?.dataset.val || 'none') : undefined };
     if (id) Object.assign(exById(id), data);
     else state.exercises.push({ id: uid(), ...data });
     saveState(); renderExercises(); renderPlanExercises(); closeModal(); toast(id ? '已保存修改' : '已添加运动', 'ok');
@@ -1873,17 +1939,26 @@ function openPicker(type) {
   // 分类快捷切换（食物按 4 大组 / 运动按 4 类别）
   const catTabs = isFood
     ? [['all', '全部'], ...LIB_GROUPS.map(g => [g.key, g.label])]
-    : [['all', '全部'], ['strength', '力量塑形'], ['cardio', '有氧燃脂'], ['yoga', '拉伸体态'], ['daily', '日常活动']];
-  let curCat = 'all';
+    : [['all', '全部'], ['cardio', '有氧'], ['strength', '无氧'], ['yoga', '拉伸体态'], ['daily', '日常活动']];
+  let curCat = 'all', curSub = 'all';
   const cardCat = it => isFood ? (LIB_GROUPS.find(x => x.cats.includes(it.cat))?.key || 'other') : (it.cat || 'other');
+  // 子分类：食物=大组下的精细子类；运动=无氧下的部位（肩胸腹手腿）
+  const subTabsFor = cat => {
+    if (cat === 'all') return null;
+    if (isFood) { const g = LIB_GROUPS.find(x => x.key === cat); return g ? [['all', '全部'], ...g.subs] : null; }
+    if (cat === 'strength') return [['all', '全部部位'], ...Object.entries(BODY_PARTS).map(([v, o]) => [v, o.label + '部'])];
+    return null;
+  };
+  const cardSub = it => isFood ? (it.sub || 'other') : (it.cat === 'strength' ? (it.part || 'other') : (it.cat || 'other'));
   const m = openModal(`
     <h3>${isFood ? '选择计划食材' : '选择偏好运动'}</h3>
     <div class="picker-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg><input id="pickerSearch" placeholder="${isFood ? '搜索食材名称 / 精细分类（如：肉、鱼虾）…' : '搜索运动名称 / 类型（如：有氧、力量）…'}"></div>
     <div class="chip-row picker-cats" id="pickerCats">${catTabs.map(([v, l], i) => `<button class="chip ${i === 0 ? 'active' : ''}" data-cat="${v}">${l}</button>`).join('')}</div>
+    <div class="chip-row picker-cats" id="pickerSubs" style="display:none;gap:7px"></div>
     <div class="grid grid-3" style="max-height:44vh;overflow-y:auto;padding-right:4px" id="pickerList">
       ${items.map(it => {
         const subTxt = isFood ? (SUB_LABEL[it.sub] || '') : (CAT_META[it.cat]?.label || '');
-        return `<div class="lib-card ${chosen.has(it.id) ? 'picked' : ''}" data-id="${it.id}" data-name="${esc(it.name)}" data-sub="${esc(subTxt)}" data-kcal="${isFood ? it.kcal : ''}" data-met="${isFood ? '' : it.met}" data-cat="${cardCat(it)}" style="${chosen.has(it.id) ? 'box-shadow:0 0 0 2px var(--accent)' : ''}">
+        return `<div class="lib-card ${chosen.has(it.id) ? 'picked' : ''}" data-id="${it.id}" data-name="${esc(it.name)}" data-sub="${esc(subTxt)}" data-kcal="${isFood ? it.kcal : ''}" data-met="${isFood ? '' : it.met}" data-cat="${cardCat(it)}" data-subcat="${cardSub(it)}" style="${chosen.has(it.id) ? 'box-shadow:0 0 0 2px var(--accent)' : ''}">
           <div class="lc-row">
             <div class="ico-badge sm" style="background:${badgeColor(it.color)}">${iconSvg(it.icon, it.color, 16)}</div>
             <div class="lc-info"><div class="lc-name">${esc(it.name)}</div><div class="lc-sub">${isFood ? it.kcal + ' kcal/100g · P' + it.protein + (subTxt ? ' · ' + subTxt : '') : 'MET ' + it.met + (subTxt ? ' · ' + subTxt : '')}</div></div>
@@ -1897,14 +1972,24 @@ function openPicker(type) {
   const okBtn = m.querySelector('#picker-ok');
   const search = m.querySelector('#pickerSearch');
   // 分类 + 关键词 组合过滤
+  const subsBox = m.querySelector('#pickerSubs');
   const applyFilter = () => {
     const kw = search.value.trim().toLowerCase();
     $$('#pickerList .lib-card').forEach(card => {
       const hay = [card.dataset.name, card.dataset.sub, card.dataset.kcal, card.dataset.met].join(' ').toLowerCase();
       const hitCat = curCat === 'all' || card.dataset.cat === curCat;
+      const hitSub = curSub === 'all' || card.dataset.subcat === curSub;
       const hitKw = !kw || hay.includes(kw);
-      card.style.display = (hitCat && hitKw) ? '' : 'none';
+      card.style.display = (hitCat && hitSub && hitKw) ? '' : 'none';
     });
+  };
+  const renderSubs = () => {
+    const tabs = subTabsFor(curCat);
+    if (tabs) {
+      curSub = 'all';
+      subsBox.style.display = 'flex';
+      subsBox.innerHTML = tabs.map(([v, l], i) => `<button class="chip ${i === 0 ? 'active' : ''}" data-sub="${v}" style="padding:5px 10px;font-size:11.5px">${l}</button>`).join('');
+    } else { subsBox.style.display = 'none'; subsBox.innerHTML = ''; curSub = 'all'; }
   };
   search.addEventListener('input', applyFilter);
   m.querySelector('#pickerCats').addEventListener('click', e => {
@@ -1912,6 +1997,14 @@ function openPicker(type) {
     $$('#pickerCats .chip').forEach(x => x.classList.remove('active'));
     chip.classList.add('active');
     curCat = chip.dataset.cat;
+    renderSubs();
+    applyFilter();
+  });
+  subsBox.addEventListener('click', e => {
+    const chip = e.target.closest('.chip'); if (!chip) return;
+    $$('#pickerSubs .chip').forEach(x => x.classList.remove('active'));
+    chip.classList.add('active');
+    curSub = chip.dataset.sub;
     applyFilter();
   });
   list.addEventListener('click', e => {
@@ -1978,14 +2071,15 @@ function buildMeal(foodIds, mealRatio, dayTarget, pref) {
 }
 
 /* 按当日类型构造训练（有氧/力量/混合），供本地计划与 AI 输出修正共用 */
-function buildDayWorkout(dayType) {
+function buildDayWorkout(dayType, part) {
   const wp = state.workoutPlan, p = state.profile;
   const bias = dayType === 'cardio' ? 'cardio' : dayType === 'strength' ? 'strength' : (wp.bias || 'mixed');
   const exIds = wp.exerciseIds.length ? wp.exerciseIds : state.exercises.slice(0, 5).map(e => e.id);
+  const gear = wp.myGear && wp.myGear.length ? wp.myGear : GEAR_LIST.map(g => g.v); // 我有的器械（无器械必含）
   const cardio = state.exercises.filter(e => e.cat === 'cardio' && exIds.includes(e.id));
-  const strength = state.exercises.filter(e => e.cat === 'strength' && exIds.includes(e.id));
+  const strength = state.exercises.filter(e => e.cat === 'strength' && exIds.includes(e.id) && (!e.part || !part || e.part === part) && (!e.gear || gear.includes(e.gear)));
   const cPool = cardio.length ? cardio : state.exercises.filter(e => e.cat === 'cardio');
-  const sPool = strength.length ? strength : state.exercises.filter(e => e.cat === 'strength');
+  const sPool = strength.length ? strength : state.exercises.filter(e => e.cat === 'strength' && (!e.part || !part || e.part === part) && (!e.gear || gear.includes(e.gear)));
   const workout = [];
   let remainingKcal = wp.kcal || 400, remainingMin = wp.minutes || 45;
   if (sPool.length && (bias === 'mixed' || bias === 'strength')) {
@@ -2036,7 +2130,7 @@ function buildLocalPlan() {
       diet.push(...buildMeal(foodIds, m.ratio, dayTarget, pref).map(it => ({ ...it, meal: m.key, time: m.time, mealLabel: m.label })));
     });
     // 训练：按当日类型构造（有氧/力量/混合）
-    const workout = isTrain ? buildDayWorkout(dayType) : [];
+    const workout = isTrain ? buildDayWorkout(dayType, (wp.bodyParts || {})[wd]) : [];
     plan.days[date] = { diet, workout };
   }
   return plan;
@@ -2106,7 +2200,7 @@ async function aiGeneratePlan() {
   const prompt = {
     profile: { height_cm: p.height, weight_kg: p.weight, age: p.age, gender: p.gender, activity_level: p.activity, current_body_fat: p.bodyFat },
     diet_plan: { target_kcal: dp.kcal, target_protein_g: dp.protein, target_fat_g: dp.fat, target_carb_g: dp.carb, preferred_foods: dp.foodIds.map(id => foodById(id)?.name).filter(Boolean), meal_preferences: dp.meals || {} },
-    workout_plan: { target_burn_kcal: wp.kcal, target_minutes: wp.minutes, days_per_week: wp.daysPerWeek, bias: wp.bias, preferred_exercises: wp.exerciseIds.map(id => exById(id)?.name).filter(Boolean), weekly_schedule: wp.weekSchedule || {}, split_type: wp.splitType || 'none' },
+    workout_plan: { target_burn_kcal: wp.kcal, target_minutes: wp.minutes, days_per_week: wp.daysPerWeek, bias: wp.bias, preferred_exercises: wp.exerciseIds.map(id => exById(id)?.name).filter(Boolean), weekly_schedule: wp.weekSchedule || {}, split_type: wp.splitType || 'none', body_parts: wp.bodyParts || {}, my_gear: wp.myGear || [] },
     plan_mode: state.planMode || 'simple',
     food_library: foodLib, exercise_library: exLib
   };
@@ -2121,7 +2215,7 @@ async function aiGeneratePlan() {
 1. days 数组必须正好 30 项，date 从今天起逐日递增（YYYY-MM-DD）
 2. 每餐 3-4 种食物，优先用用户 preferred_foods / 食物库里的；早30% 午40% 晚30% 热量配比
 3. 蛋白质优先保证达标；用食物库真实营养值核算
-4. 训练安排：若 plan_mode=detailed 且提供 weekly_schedule（1-7 对应周一至周日：cardio/strength/mixed/rest，mixed=力量+有氧），严格按逐日类型安排——strength 日安排力量训练（若 split_type 为 ppl/upper-lower/bro 等分化类型，按对应肌群轮换安排动作），cardio 日安排有氧，rest 日 workout 为空数组；plan_mode=simple 则按 days_per_week 与 bias 常规安排
+4. 训练安排：若 plan_mode=detailed 且提供 weekly_schedule（1-7 对应周一至周日：cardio/strength/mixed/rest，mixed=力量+有氧），严格按逐日类型安排——strength/mixed 日安排力量训练：按 body_parts 对应日期的部位（shoulder肩/chest胸/core腹/arm手/leg腿）从运动库选择该部位的力量动作（若 split_type 为 ppl/upper-lower/bro 等分化类型，按对应肌群轮换安排动作）；只使用用户拥有的器械（my_gear 中的器械，无器械动作始终可用）；cardio 日安排有氧，rest 日 workout 为空数组；plan_mode=simple 则按 days_per_week 与 bias 常规安排
 5. 每餐热量配比 早30% 午40% 晚30%；如 meal_preferences 提供某餐宏量偏好（proteinW/carbW/fatW：0偏少 1正常 2偏多 3很多），该餐按偏好侧重对应营养
 6. foodName / exerciseName 必须与库中名字完全一致，否则视为无效
 7. 不要在 JSON 之外输出任何解释、Markdown、思考过程——直接输出 JSON`;
@@ -2160,7 +2254,7 @@ function mapAiPlan(parsed) {
     }
     // 确定性修正：严格按周计划——休息日强制无训练；训练日若 AI 未安排则按类型补齐
     if (dayType === 'rest') workout = [];
-    else if (!workout.length) workout = buildDayWorkout(dayType);
+    else if (!workout.length) workout = buildDayWorkout(dayType, (wp.bodyParts || {})[wd]);
     // 确定性修正：营养校准（贴合每日目标热量，偏差 >6% 按比例缩放克数）
     diet = calibrateDiet(diet, dayTarget);
     plan.days[date] = { diet, workout };
@@ -2418,10 +2512,17 @@ function renderWeek() {
     const date = addDays(w0, i);
     const isToday = date === todayStr();
     const hasPlan = state.plan && state.plan.days[date];
+    // 当日训练类型图标：力量(哑铃蓝)/有氧(跑步红)，都有则都显示；无训练仅饮食则不显示图标
+    const ws = hasPlan ? (state.plan.days[date].workout || []) : [];
+    const hasStrength = ws.some(w => (w.cat || exById(w.exId)?.cat) === 'strength');
+    const hasCardio = ws.some(w => (w.cat || exById(w.exId)?.cat) === 'cardio');
+    const dayIcons = [];
+    if (hasStrength) dayIcons.push(iconSvg('ex-dumbbell', '#2563EB', 13));
+    if (hasCardio) dayIcons.push(iconSvg('ex-run', '#EF4444', 13));
     return `<div class="day-chip ${i === selIdx ? 'active' : ''}" data-date="${date}">
       <div class="d">${wd}${isToday ? ' · 今' : ''}</div>
       <div class="n">${date.slice(8)}</div>
-      <div style="font-size:9px;color:var(--text-3);margin-top:3px">${hasPlan ? (state.plan.days[date].workout.length ? `${iconSvg('dumbbell', 'currentColor', 11)} ${iconSvg('ui-meal', 'currentColor', 11)}` : `${iconSvg('ui-meal', 'currentColor', 11)}`) : '—'}</div>
+      <div style="display:flex;gap:3px;justify-content:center;margin-top:4px;min-height:14px">${hasPlan ? (dayIcons.length ? dayIcons.join('') : '<span style="color:var(--text-4);font-size:10px">—</span>') : '<span style="color:var(--text-4);font-size:10px">—</span>'}</div>
     </div>`;
   }).join('');
   $$('#weekDays .day-chip').forEach(c => c.addEventListener('click', () => { activeDate = c.dataset.date; renderWeek(); renderDayTimeline(); }));
@@ -2876,8 +2977,14 @@ function openPlanSettings() {
   const typeOpts = [{ v: 'cardio', label: '有氧' }, { v: 'strength', label: '力量' }, { v: 'mixed', label: '力量+有氧' }, { v: 'rest', label: '休息' }];
   const splitOpts = [{ v: 'none', label: '不分化（每次全身）' }, { v: 'upper-lower', label: '上下肢分化' }, { v: 'ppl', label: '三分化推拉腿（PPL）' }, { v: 'bro', label: '五分化（胸背肩腿臂）' }];
   const prefOpts = [[0, '偏少'], [1, '正常'], [2, '偏多'], [3, '很多']].map(([v, l]) => ({ v: String(v), label: l }));
-  const weekHTML = WEEK_CN.map((wd, i) => `
-    <div class="ws-row"><span class="ws-day">${wd}</span>${cxSelectHTML('ws-' + (i + 1), sched[i + 1] || 'rest', typeOpts)}</div>`).join('');
+  const partOpts = Object.entries(BODY_PARTS).map(([v, o]) => ({ v, label: o.label + '部' }));
+  const bpSched = wp.bodyParts || {};
+  const weekHTML = WEEK_CN.map((wd, i) => {
+    const d = i + 1;
+    const t = sched[d] || 'rest';
+    const showPart = t === 'strength' || t === 'mixed';
+    return `<div class="ws-row"><span class="ws-day">${wd}</span>${cxSelectHTML('ws-' + d, t, typeOpts)}<div class="ws-part" style="${showPart ? '' : 'display:none'}">${cxSelectHTML('bp-' + d, bpSched[d] || 'chest', partOpts)}</div></div>`;
+  }).join('');
   const mealHTML = MEAL_KEYS.map(([k, label]) => {
     const m = meals[k] || { proteinW: 1, carbW: 1, fatW: 1 };
     return `<div class="mp-row"><span class="mp-meal">${label}</span><span class="mp-item">蛋白 ${cxSelectHTML('mp-' + k + '-proteinW', String(m.proteinW), prefOpts, '正常')}</span><span class="mp-item">碳水 ${cxSelectHTML('mp-' + k + '-carbW', String(m.carbW), prefOpts, '正常')}</span><span class="mp-item">脂肪 ${cxSelectHTML('mp-' + k + '-fatW', String(m.fatW), prefOpts, '正常')}</span></div>`;
@@ -2895,6 +3002,9 @@ function openPlanSettings() {
     <div class="section-title" style="margin:16px 0 10px;font-size:14px">${iconSvg('dumbbell', 'currentColor', 14)} 每周运动计划<span class="mini" style="font-weight:500">逐日设定有氧 / 力量 / 休息，自定义休息日</span></div>
     <div class="week-sched">${weekHTML}</div>
     <div class="field" style="margin-top:12px"><label>力量训练分化类型</label>${cxSelectHTML('splitType', wp.splitType || 'none', splitOpts)}</div>
+    <div class="field" style="margin-top:14px"><label>我有的器械 <span class="mini" style="font-weight:500">（可多选，无器械默认包含）</span></label>
+      <div class="chip-row" id="ps-gear" style="gap:7px">${GEAR_LIST.map(g => `<button class="chip ${(wp.myGear || ['none']).includes(g.v) ? 'active' : ''}" data-gear="${g.v}" style="padding:6px 12px">${g.label}</button>`).join('')}</div>
+    </div>
     <div class="section-title" style="margin:16px 0 10px;font-size:14px">${iconSvg('ui-meal', 'currentColor', 14)} 三餐营养偏好<span class="mini" style="font-weight:500">如：早上多蛋白质、中午多碳水</span></div>
     <div class="meal-pref">${mealHTML}</div>
     <div class="section-title" style="margin:16px 0 10px;font-size:14px">${iconSvg('ui-chart', 'currentColor', 14)} 每日摄入目标（总量）</div>
@@ -2907,7 +3017,19 @@ function openPlanSettings() {
     <p class="mini" style="margin-top:12px;color:var(--text-3)">保存后请重新「一键生成计划」，AI 将按你的详细设置输出计划、预测与建议。</p>
     <div class="modal-foot"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn" id="ps-save">保存并重新演算</button></div>
   `);
-  bindCustomSelects(m);
+  bindCustomSelects(m, (wrap, val) => {
+    // 周计划类型变化 → 联动部位显隐
+    if (wrap.dataset.cx.startsWith('ws-')) {
+      const partBox = wrap.closest('.ws-row')?.querySelector('.ws-part');
+      if (partBox) partBox.style.display = (val === 'strength' || val === 'mixed') ? '' : 'none';
+    }
+  });
+  // 器械多选（无器械始终勾选）
+  m.querySelector('#ps-gear').addEventListener('click', e => {
+    const chip = e.target.closest('.chip'); if (!chip) return;
+    if (chip.dataset.gear === 'none') return; // 无器械默认必含
+    chip.classList.toggle('active');
+  });
   m.querySelector('#ps-save').addEventListener('click', () => {
     const nn = (id, fb) => { const el = m.querySelector(id); const v = el ? +el.value : NaN; return isNaN(v) || v <= 0 ? fb : v; };
     // 个人信息 + 摄入目标（输入框）
@@ -2917,11 +3039,16 @@ function openPlanSettings() {
     });
     Object.assign(state.dietPlan, { kcal: nn('#ps-kcal', 1800), protein: nn('#ps-protein', 130), fat: nn('#ps-fat', 55), carb: nn('#ps-carb', 170) });
     Object.assign(state.workoutPlan, { kcal: state.workoutPlan.kcal, minutes: state.workoutPlan.minutes, daysPerWeek: state.workoutPlan.daysPerWeek, bias: state.workoutPlan.bias });
-    // 周计划（自定义下拉）
+    // 周计划（自定义下拉）+ 每日部位
     const sched = {};
+    const bodyParts = {};
     m.querySelectorAll('.cx-select[data-cx^="ws-"]').forEach(w => { sched[w.dataset.cx.slice(3)] = w.dataset.val || 'rest'; });
+    m.querySelectorAll('.cx-select[data-cx^="bp-"]').forEach(w => { bodyParts[w.dataset.cx.slice(3)] = w.dataset.val || 'chest'; });
     state.workoutPlan.weekSchedule = sched;
+    state.workoutPlan.bodyParts = bodyParts;
     state.workoutPlan.splitType = m.querySelector('.cx-select[data-cx="splitType"]')?.dataset.val || 'none';
+    // 器械多选（强制含无器械）
+    state.workoutPlan.myGear = ['none', ...Array.from(m.querySelectorAll('#ps-gear .chip.active')).map(ch => ch.dataset.gear)];
     // 三餐偏好（自定义下拉）
     const mealsData = {};
     m.querySelectorAll('.cx-select[data-cx^="mp-"]').forEach(w => {
