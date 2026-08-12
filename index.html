@@ -1902,14 +1902,23 @@ function renderPlanFoods() {
   const ids = state.dietPlan.foodIds;
   const box = $('#planFoods');
   if (!ids.length) { box.innerHTML = `<div class="empty-hint" style="grid-column:1/-1;padding:16px"><b>尚未选择食材</b>点击「从食物库添加食材」</div>`; return; }
-  box.innerHTML = ids.map(id => { const f = foodById(id); if (!f) return ''; const g = LIB_GROUPS.find(x => x.cats.includes(f.cat)); const li = g ? (LIB_ICONS[g.key] || { icon: 'ui-meal', color: '#94A3B8' }) : { icon: 'ui-meal', color: '#94A3B8' }; return `
+  const items = ids.map(id => foodById(id)).filter(Boolean);
+  // 按营养分类（4 大组）分组展示
+  const card = f => { const g = LIB_GROUPS.find(x => x.cats.includes(f.cat)); const li = g ? (LIB_ICONS[g.key] || { icon: 'ui-meal', color: '#94A3B8' }) : { icon: 'ui-meal', color: '#94A3B8' }; return `
     <div class="lib-card">
       <div class="lc-row">
         <div class="ico-badge sm" style="background:${badgeColor(li.color)}">${iconSvg(li.icon, li.color, 16)}</div>
         <div class="lc-info"><div class="lc-name">${esc(f.name)}</div><div class="lc-sub">${f.kcal} kcal/100g · P${f.protein}</div></div>
-        <button class="icon-btn del" data-remove="${id}">${iconSvg('ui-x', 'currentColor', 14)}</button>
+        <button class="icon-btn del" data-remove="${f.id}">${iconSvg('ui-x', 'currentColor', 14)}</button>
       </div>
-    </div>`; }).join('');
+    </div>`; };
+  const groups = LIB_GROUPS.map(g => {
+    const list = items.filter(f => g.cats.includes(f.cat));
+    return list.length ? `<div class="ex-sub-head" style="grid-column:1/-1"><span class="sub-dot" style="background:${g.color}"></span><b>${g.label}</b><span class="mini">${list.length} 种</span></div>${list.map(card).join('')}` : '';
+  }).join('');
+  const others = items.filter(f => !LIB_GROUPS.some(g => g.cats.includes(f.cat)));
+  const otherHTML = others.length ? `<div class="ex-sub-head" style="grid-column:1/-1"><b>其他</b><span class="mini">${others.length} 种</span></div>${others.map(card).join('')}` : '';
+  box.innerHTML = groups + otherHTML;
   $$('#planFoods [data-remove]').forEach(b => b.addEventListener('click', () => {
     state.dietPlan.foodIds = state.dietPlan.foodIds.filter(x => x !== b.dataset.remove);
     saveState(); renderPlanFoods();
@@ -1919,14 +1928,31 @@ function renderPlanExercises() {
   const ids = state.workoutPlan.exerciseIds;
   const box = $('#planExercises');
   if (!ids.length) { box.innerHTML = `<div class="empty-hint" style="grid-column:1/-1;padding:16px"><b>尚未选择运动</b>点击「从运动库添加运动」</div>`; return; }
-  box.innerHTML = ids.map(id => { const e0 = exById(id); if (!e0) return ''; const li = LIB_ICONS[e0.cat] || { icon: 'ex-run', color: '#94A3B8' }; return `
+  const items = ids.map(id => exById(id)).filter(Boolean);
+  const card = e0 => { const li = LIB_ICONS[e0.cat] || { icon: 'ex-run', color: '#94A3B8' }; return `
     <div class="lib-card">
       <div class="lc-row">
         <div class="ico-badge sm" style="background:${badgeColor(li.color)}">${iconSvg(li.icon, li.color, 16)}</div>
-        <div class="lc-info"><div class="lc-name">${esc(e0.name)}</div><div class="lc-sub">MET ${e0.met} · ${CAT_META[e0.cat]?.label}</div></div>
-        <button class="icon-btn del" data-remove="${id}">${iconSvg('ui-x', 'currentColor', 14)}</button>
+        <div class="lc-info"><div class="lc-name">${esc(e0.name)}</div><div class="lc-sub"><span class="badge" style="background:${badgeColor(CAT_META[e0.cat]?.color)};color:${CAT_META[e0.cat]?.color}">${CAT_META[e0.cat]?.label || e0.cat}</span>${e0.cat === 'strength' && e0.part ? `<span class="badge" style="background:${badgeColor(BODY_PARTS[e0.part]?.color)};color:${BODY_PARTS[e0.part]?.color}">${BODY_PARTS[e0.part]?.label || ''}部</span>` : ''}<span class="mini" style="font-weight:600">${e0.cat === 'strength' && e0.gear ? '· ' + (GEAR_LABEL[e0.gear] || e0.gear) : ''} · MET ${e0.met}</span></div></div>
+        <button class="icon-btn del" data-remove="${e0.id}">${iconSvg('ui-x', 'currentColor', 14)}</button>
       </div>
-    </div>`; }).join('');
+    </div>`; };
+  // 大类：有氧/无氧/拉伸/日常；无氧（力量）再按部位分组
+  const catOrder = ['cardio', 'strength', 'yoga', 'daily'];
+  const html = catOrder.map(cat => {
+    const list = items.filter(e => e.cat === cat);
+    if (!list.length) return '';
+    let inner = list.map(card).join('');
+    if (cat === 'strength') {
+      inner = Object.entries(BODY_PARTS).map(([pk, po]) => {
+        const sub = list.filter(e => e.part === pk);
+        return sub.length ? `<div class="ex-sub-head" style="grid-column:1/-1"><span class="sub-dot" style="background:${po.color}"></span><b>${po.label}部</b><span class="mini">${sub.length} 种</span></div>${sub.map(card).join('')}` : '';
+      }).join('') + (list.filter(e => !BODY_PARTS[e.part]).length ? `<div class="ex-sub-head" style="grid-column:1/-1"><b>其他</b></div>${list.filter(e => !BODY_PARTS[e.part]).map(card).join('')}` : '');
+    }
+    return `<div class="ex-group-head" style="grid-column:1/-1"><span class="cat-dot" style="background:${CAT_META[cat].color}"></span><b>${CAT_META[cat].label}</b><span class="mini">${list.length} 项</span></div>${inner}`;
+  }).join('');
+  const others = items.filter(e => !catOrder.includes(e.cat));
+  box.innerHTML = html + (others.length ? `<div class="ex-group-head" style="grid-column:1/-1"><b>其他</b><span class="mini">${others.length} 项</span></div>${others.map(card).join('')}` : '');
   $$('#planExercises [data-remove]').forEach(b => b.addEventListener('click', () => {
     state.workoutPlan.exerciseIds = state.workoutPlan.exerciseIds.filter(x => x !== b.dataset.remove);
     saveState(); renderPlanExercises();
