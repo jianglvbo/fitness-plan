@@ -2538,18 +2538,17 @@ function renderWeek() {
     const date = addDays(w0, i);
     const isToday = date === todayStr();
     const hasPlan = state.plan && state.plan.days[date];
-    // 当日训练类型图标：力量(💪臂·红) / 有氧(🏃跑·蓝) / 休息(💤月·绿)，都有则都显示
+    // 当日训练类型图标（emoji 原生渲染，贴合场景）：力量💪 / 有氧🏃 / 休息💤，都有则都显示
     const ws = hasPlan ? (state.plan.days[date].workout || []) : [];
     const hasStrength = ws.some(w => (w.cat || exById(w.exId)?.cat) === 'strength');
     const hasCardio = ws.some(w => (w.cat || exById(w.exId)?.cat) === 'cardio');
-    const sleepIcon = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4 8.5 8.5 0 1 0 20 14.5z"/><path d="M16 6h4l-4 4h4"/></svg>`;
     const dayIcons = [];
-    if (hasStrength) dayIcons.push(iconSvg('ui-muscle', '#EF4444', 13));
-    if (hasCardio) dayIcons.push(iconSvg('ex-run', '#3B82F6', 13));
+    if (hasStrength) dayIcons.push('<span style="font-size:15px;line-height:1">💪</span>');
+    if (hasCardio) dayIcons.push('<span style="font-size:15px;line-height:1">🏃</span>');
     return `<div class="day-chip ${i === selIdx ? 'active' : ''}" data-date="${date}">
       <div class="d">${wd}${isToday ? ' · 今' : ''}</div>
       <div class="n">${date.slice(8)}</div>
-      <div style="display:flex;gap:3px;justify-content:center;margin-top:4px;min-height:14px">${hasPlan ? (dayIcons.length ? dayIcons.join('') : sleepIcon) : '<span style="color:var(--text-4);font-size:10px">—</span>'}</div>
+      <div style="display:flex;gap:3px;justify-content:center;margin-top:3px;min-height:17px">${hasPlan ? (dayIcons.length ? dayIcons.join('') : '<span style="font-size:15px;line-height:1">💤</span>') : '<span style="color:var(--text-4);font-size:10px">—</span>'}</div>
     </div>`;
   }).join('');
   $$('#weekDays .day-chip').forEach(c => c.addEventListener('click', () => { activeDate = c.dataset.date; renderWeek(); renderDayTimeline(); }));
