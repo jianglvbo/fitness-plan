@@ -2538,17 +2538,20 @@ function renderWeek() {
     const date = addDays(w0, i);
     const isToday = date === todayStr();
     const hasPlan = state.plan && state.plan.days[date];
-    // 当日训练类型图标（emoji 原生渲染，贴合场景）：力量💪 / 有氧🏃 / 休息💤，都有则都显示
+    // 当日训练类型图标（填充式 SVG，贴合场景）：力量=哑铃·红 / 有氧=奔跑·蓝 / 休息=月亮·绿，都有则都显示
     const ws = hasPlan ? (state.plan.days[date].workout || []) : [];
     const hasStrength = ws.some(w => (w.cat || exById(w.exId)?.cat) === 'strength');
     const hasCardio = ws.some(w => (w.cat || exById(w.exId)?.cat) === 'cardio');
+    const ICON_STRENGTH = `<svg width="15" height="15" viewBox="0 0 24 24"><rect x="2" y="7.5" width="3" height="9" rx="1.3" fill="#EF4444"/><rect x="19" y="7.5" width="3" height="9" rx="1.3" fill="#EF4444"/><rect x="5" y="10.2" width="14" height="3.6" rx="1.2" fill="#EF4444"/></svg>`;
+    const ICON_CARDIO = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4.5" r="1.9" fill="#3B82F6" stroke="none"/><path d="M10.5 8.5L7 10.5l1.5 1.5-2.5 5.5 2 1 2.3-4.5 3 3 2-1-2.3-5.5 2-1.5-1-2L10.5 8.5z"/></svg>`;
+    const ICON_REST = `<svg width="15" height="15" viewBox="0 0 24 24"><path d="M21 13.5A8.5 8.5 0 1 1 10.5 3a7 7 0 0 0 10.5 10.5z" fill="#22C55E"/></svg>`;
     const dayIcons = [];
-    if (hasStrength) dayIcons.push('<span style="font-size:15px;line-height:1">💪</span>');
-    if (hasCardio) dayIcons.push('<span style="font-size:15px;line-height:1">🏃</span>');
+    if (hasStrength) dayIcons.push(ICON_STRENGTH);
+    if (hasCardio) dayIcons.push(ICON_CARDIO);
     return `<div class="day-chip ${i === selIdx ? 'active' : ''}" data-date="${date}">
       <div class="d">${wd}${isToday ? ' · 今' : ''}</div>
       <div class="n">${date.slice(8)}</div>
-      <div style="display:flex;gap:3px;justify-content:center;margin-top:3px;min-height:17px">${hasPlan ? (dayIcons.length ? dayIcons.join('') : '<span style="font-size:15px;line-height:1">💤</span>') : '<span style="color:var(--text-4);font-size:10px">—</span>'}</div>
+      <div style="display:flex;gap:3px;justify-content:center;align-items:center;margin-top:3px;min-height:17px">${hasPlan ? (dayIcons.length ? dayIcons.join('') : ICON_REST) : '<span style="color:var(--text-4);font-size:10px">—</span>'}</div>
     </div>`;
   }).join('');
   $$('#weekDays .day-chip').forEach(c => c.addEventListener('click', () => { activeDate = c.dataset.date; renderWeek(); renderDayTimeline(); }));
