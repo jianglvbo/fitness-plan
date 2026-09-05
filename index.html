@@ -795,9 +795,7 @@ input[type=number]{-moz-appearance:textfield}
         <div class="grid grid-4" style="margin-bottom:16px">
           <div class="field"><label>每日目标消耗 (kcal)</label><input type="number" id="woTargetKcal" min="0" step="20"></div>
           <div class="field"><label>每日目标时长 (分钟)</label><input type="number" id="woTargetMin" min="0" step="5"></div>
-          <div class="field"><label>每周训练天数</label><select id="woDays"><option value="3">3 天</option><option value="4">4 天</option><option value="5" selected>5 天</option><option value="6">6 天</option><option value="7">7 天</option></select></div>
-          <div class="field"><label>运动偏好</label><select id="woBias"><option value="mixed" selected>有氧+力量均衡</option><option value="cardio">偏有氧</option><option value="strength">偏力量</option></select></div>
-          <div class="field"><label>训练分化方案</label><select id="woSplit"><option value="none">不分化（按日指定部位）</option><option value="split3">三分化：胸+二头 / 背+三头 / 肩+腿</option><option value="split5">五分化：胸 / 背 / 肩 / 腿 / 手臂</option></select></div>
+          <div class="field"><label>训练分化方案（周期自动循环）</label><select id="woSplit"><option value="split5">五分化：练5 + 有氧1 + 休1（7天循环）</option><option value="split3">三分化：练3 + 休1（4天循环）</option></select></div>
         </div>
         <div class="section-title" style="margin:6px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="13" cy="4.5" r="1.8"/><path d="M10 8.5l-3.5 1 .5 1.5L10 10l4 3 .5 6 2 .3.5-5.3L13 9l2-3.5-3-1-2 4z"/></svg>偏好运动（训练清单从中轮换）</div>
         <div id="planExercises" class="grid grid-3" style="margin-bottom:6px"></div>
@@ -1284,7 +1282,7 @@ function defaultState() {
     },
     workoutPlan: {
       kcal: 400, minutes: 45, daysPerWeek: 5, bias: 'mixed', exerciseIds: ['e-jog', 'e-bench', 'e-squat', 'e-rope', 'e-plank'],
-      splitType: 'none',
+      splitType: 'split5',
       weekSchedule: { 1: 'cardio', 2: 'strength', 3: 'cardio', 4: 'strength', 5: 'cardio', 6: 'rest', 7: 'rest' },
       bodyParts: {},       // 每日训练部位：{ 1:'chest', 2:'leg', ... }（力量日）
       myGear: ['none', 'barbell', 'dumbbell', 'bar', 'machine', 'band', 'rope']  // 我有的器械（默认全选）
@@ -1390,7 +1388,7 @@ function migrateExerciseCats() {
 function migratePlanParams() {
   let changed = false;
   const wp = state.workoutPlan = state.workoutPlan || {};
-  if (wp.splitType === undefined) { wp.splitType = 'none'; changed = true; }
+  if (wp.splitType === undefined || wp.splitType === 'none') { wp.splitType = 'split5'; changed = true; }
   if (!wp.weekSchedule) {
     wp.weekSchedule = {};
     for (let d = 1; d <= 7; d++) {
@@ -1460,6 +1458,7 @@ async function tryLoadFromServer() {
       if (j.data && j.data.foods && Array.isArray(j.data.foods) && j.data.exercises && Array.isArray(j.data.exercises) && j.data.settings) {
         state = j.data;
         if (j.data.dietExtras && state.dietPlan) Object.assign(state.dietPlan, j.data.dietExtras);
+        if (j.data.volumeTier && state.workoutPlan) state.workoutPlan.volumeTier = j.data.volumeTier;
         // 同步到 localStorage，保证 file:// 打开时数据一致
         try { localStorage.setItem(LS_KEY(), JSON.stringify(state)); } catch (e) { /* ignore */ }
         return true;
@@ -2240,18 +2239,19 @@ function buildMeal(foodIds, mealRatio, dayTarget, pref) {
   return items;
 }
 
-/* 分化部位池：split3=胸+二头/背+三头/肩+腿 轮换；split5=胸/背/肩/腿/手臂 轮换；其余按日指定部位 */
-function trainingDayIndex(wp, wd) {
-  const trainDays = [1, 2, 3, 4, 5, 6, 7].filter(d => (wp.weekSchedule || {})[d] && wp.weekSchedule[d] !== 'rest');
-  const i = trainDays.indexOf(Number(wd));
-  return i >= 0 ? i : 0;
-}
-function partPoolForDay(wp, wd) {
-  const st = wp.splitType;
-  if (st === 'split3') return [['chest', 'arm'], ['back', 'arm'], ['shoulder', 'leg']][trainingDayIndex(wp, wd) % 3];
-  if (st === 'split5') return [['chest'], ['back'], ['shoulder'], ['leg'], ['arm']][trainingDayIndex(wp, wd) % 5];
-  const manual = (wp.bodyParts || {})[wd];
-  return manual ? [manual] : [];
+/* 周期循环引擎：split3=练3休1（4天循环：胸+二头/背+三头/肩+腿）；split5=练5+有氧1+休1（7天循环：胸/背/肩/腿/手臂）；pos 从 0 起 */
+const SPLIT3_GROUPS = [['chest', 'arm'], ['back', 'arm'], ['shoulder', 'leg']];
+const SPLIT5_PARTS = ['chest', 'back', 'shoulder', 'leg', 'arm'];
+function cycleInfo(splitType, pos) {
+  if (splitType === 'split3') {
+    const r = pos % 4;
+    if (r === 3) return { type: 'rest' };
+    return { type: 'strength', parts: SPLIT3_GROUPS[r] };
+  }
+  const r = pos % 7;
+  if (r < 5) return { type: 'strength', parts: [SPLIT5_PARTS[r]] };
+  if (r === 5) return { type: 'cardio' };
+  return { type: 'rest' };
 }
 /* 按当日类型构造训练（有氧/力量/混合），供本地计划与 AI 输出修正共用 */
 function buildDayWorkout(dayType, parts) {
@@ -2305,16 +2305,15 @@ function buildLocalPlan() {
   for (let d = 0; d < 30; d++) {
     const date = addDays(todayStr(), d);
     // 按周计划决定当日训练类型（周几 → 有氧/力量/休息；详细模式逐日设定，简单模式由天数/偏好推导）
-    const wd = (d % 7) + 1; // 周一 = 1
-    const dayType = (wp.weekSchedule && wp.weekSchedule[wd]) || (d < (wp.daysPerWeek || 5) ? 'mixed' : 'rest');
-    const isTrain = dayType !== 'rest';
+    const cyc = cycleInfo(wp.splitType, d);
+    const dayType = cyc.type;
     const diet = [];
     MEAL_DEF.forEach(m => {
       const pref = (dp.meals || {})[m.key];
       diet.push(...buildMeal(foodIds, m.ratio, dayTarget, pref).map(it => ({ ...it, meal: m.key, time: m.time, mealLabel: m.label })));
     });
-    // 训练：按当日类型构造（有氧/力量/混合）
-    const workout = isTrain ? buildDayWorkout(dayType, partPoolForDay(wp, wd)) : [];
+    // 训练：按周期当日类型构造（力量/有氧；休息日为空）
+    const workout = dayType !== 'rest' ? buildDayWorkout(dayType, cyc.parts || []) : [];
     plan.days[date] = { diet, workout };
   }
   return plan;
@@ -2384,7 +2383,7 @@ async function aiGeneratePlan() {
   const prompt = {
     profile: { height_cm: p.height, weight_kg: p.weight, age: p.age, gender: p.gender, activity_level: p.activity, current_body_fat: p.bodyFat },
     diet_plan: { target_kcal: dp.kcal, target_protein_g: dp.protein, target_fat_g: dp.fat, target_carb_g: dp.carb, preferred_foods: dp.foodIds.map(id => foodById(id)?.name).filter(Boolean), meal_preferences: dp.meals || {} },
-    workout_plan: { target_burn_kcal: wp.kcal, target_minutes: wp.minutes, days_per_week: wp.daysPerWeek, bias: wp.bias, preferred_exercises: wp.exerciseIds.map(id => exById(id)?.name).filter(Boolean), weekly_schedule: wp.weekSchedule || {}, split_type: wp.splitType || 'none', body_parts: wp.bodyParts || {}, my_gear: wp.myGear || [] },
+    workout_plan: { preferred_exercises: wp.exerciseIds.map(id => exById(id)?.name).filter(Boolean), split_type: wp.splitType === 'split3' ? 'split3' : 'split5', volume_tier: wp.volumeTier || '' },
     plan_mode: state.planMode || 'simple',
     food_library: foodLib, exercise_library: exLib
   };
@@ -2399,7 +2398,7 @@ async function aiGeneratePlan() {
 1. days 数组必须正好 30 项，date 从今天起逐日递增（YYYY-MM-DD）
 2. 每餐 3-4 种食物，优先用用户 preferred_foods / 食物库里的；早30% 午40% 晚30% 热量配比
 3. 蛋白质优先保证达标；用食物库真实营养值核算
-4. 训练安排：若 plan_mode=detailed 且提供 weekly_schedule（1-7 对应周一至周日：cardio/strength/mixed/rest，mixed=力量+有氧），严格按逐日类型安排——strength/mixed 日安排力量训练：按 body_parts 对应日期的部位（shoulder肩/chest胸/core腹/arm手/leg腿）从运动库选择该部位的力量动作（split_type=split3 时按三分化轮换：第1个训练日胸+二头、第2个背+三头、第3个肩+腿，循环；split_type=split5 时按 胸/背/肩/腿/手臂 五天轮换）；只使用用户拥有的器械（my_gear 中的器械，无器械动作始终可用）；cardio 日安排有氧，rest 日 workout 为空数组；plan_mode=simple 则按 days_per_week 与 bias 常规安排
+4. 训练安排严格按周期循环（从第 1 天起）：split_type=split5 时 7 天一循环——第1-5天力量日依次练 胸/背/肩/腿/手臂（只选对应部位的动作），第6天有氧，第7天休息（workout 为空数组）；split_type=split3 时 4 天一循环——第1-3天力量日依次练 胸+二头/背+三头/肩+腿，第4天休息；动作以自重和常见器械为主
 5. 每餐热量配比 早30% 午40% 晚30%；如 meal_preferences 提供某餐宏量偏好（proteinW/carbW/fatW：0偏少 1正常 2偏多 3很多），该餐按偏好侧重对应营养
 6. foodName / exerciseName 必须与库中名字完全一致，否则视为无效
 7. 不要在 JSON 之外输出任何解释、Markdown、思考过程——直接输出 JSON`;
@@ -2416,8 +2415,8 @@ function mapAiPlan(parsed) {
   const fillFoodIds = dp.foodIds.length ? dp.foodIds : state.foods.filter(f => ['carb', 'protein', 'veg'].includes(f.cat)).map(f => f.id);
   for (let i = 0; i < 30; i++) {
     const date = addDays(week0, i);
-    const wd = (i % 7) + 1; // 周一 = 1
-    const dayType = (wp.weekSchedule && wp.weekSchedule[wd]) || 'rest';
+    const cyc = cycleInfo(wp.splitType, i);
+    const dayType = cyc.type;
     const d = aiDays[i];
     let diet = [], workout = [];
     if (d && (d.diet || []).length) {
@@ -2438,7 +2437,7 @@ function mapAiPlan(parsed) {
     }
     // 确定性修正：严格按周计划——休息日强制无训练；训练日若 AI 未安排则按类型补齐
     if (dayType === 'rest') workout = [];
-    else if (!workout.length) workout = buildDayWorkout(dayType, partPoolForDay(wp, wd));
+    else if (!workout.length) workout = buildDayWorkout(dayType, cyc.parts || []);
     // 确定性修正：营养校准（贴合每日目标热量，偏差 >6% 按比例缩放克数）
     diet = calibrateDiet(diet, dayTarget);
     plan.days[date] = { diet, workout };
@@ -2496,7 +2495,7 @@ function localSuggestions() {
   else s.push('热量缺口适中（约 ' + Math.round(deficit) + ' kcal/日），是减脂保肌的理想区间，请保持执行。');
   if (dp.protein / p.weight < 1.6) s.push('蛋白质摄入（' + dp.protein + 'g）相对体重偏低，建议提升至 ' + Math.round(p.weight * 1.8) + 'g 以上，以保护肌肉、提升饱腹感。');
   else s.push('蛋白质摄入充足（' + dp.protein + 'g），对肌肉保留非常有利。');
-  const strengthDays = wp.daysPerWeek;
+  const strengthDays = wp.splitType === 'split3' ? 3 : 5; // 周期制：三分化 3 力量日，五分化 5 力量日
   if (strengthDays < 3) s.push('每周力量训练仅 ' + strengthDays + ' 天，减脂期建议至少 3 天力量训练，防止肌肉流失。');
   else s.push('每周 ' + strengthDays + ' 天训练安排合理，有氧与力量结合有助于「减脂不掉肌」。');
   s.push('核心考核体脂率：建议每周固定时间、空腹测量记录，观察体脂趋势而非纠结体重数字。');
@@ -3022,9 +3021,19 @@ document.addEventListener('click', () => {
   document.querySelectorAll('.cx-menu.show').forEach(m => { m.classList.remove('show'); const w = m.closest('.cx-select'); if (w) w.classList.remove('open'); });
 });
 
-/* ── 计划参数弹窗（详细模式：逐日周计划 + 训练分化 + 三餐营养偏好） ── */
-const MEAL_KEYS = [['breakfast', '早餐'], ['lunch', '午餐'], ['dinner', '晚餐']];
-const WEEK_CN = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+/* ── 计划参数弹窗（周期制：个人信息 + 分化周期 + 体重系数营养目标） ── */
+/* 每周运动量档位 → 营养系数 [碳水, 蛋白质, 脂肪] g/kg（男/女） */
+const VOLUME_TIERS = [
+  { v: '2-3h', label: '每周 2-3 小时 · 约 2 练' },
+  { v: '4-5h', label: '每周 4-5 小时 · 约 3 练' },
+  { v: '6-7h', label: '每周 6-7 小时 · 约 4 练' },
+  { v: '8-9h', label: '每周 8-9 小时 · 约 5 练' }
+];
+const TIER_ACTIVITY = { '2-3h': 1.375, '4-5h': 1.55, '6-7h': 1.65, '8-9h': 1.725 };
+const TIER_COEF = {
+  male:   { '2-3h': [2.2, 1.4, 0.8], '4-5h': [2.5, 1.6, 0.9], '6-7h': [3.0, 1.7, 1.0], '8-9h': [3.5, 1.8, 1.0] },
+  female: { '2-3h': [2.0, 1.4, 1.0], '4-5h': [2.2, 1.6, 1.05], '6-7h': [2.5, 1.7, 1.1], '8-9h': [3.0, 1.8, 1.15] }
+};
 
 function openPlanSettings() {
   const p = state.profile, dp = state.dietPlan, wp = state.workoutPlan;
@@ -3034,37 +3043,15 @@ function openPlanSettings() {
     height: latest && latest.height ? latest.height : p.height,
     weight: latest && latest.weight ? latest.weight : p.weight,
     bodyFat: latest && latest.bodyFat != null ? latest.bodyFat : p.bodyFat,
-    age: p.age, activity: p.activity
+    age: p.age, gender: p.gender || 'male'
   };
-  const sched = wp.weekSchedule || {};
-  const meals = dp.meals || {};
-  const actOpts = [[1.2, '久坐（几乎不运动）'], [1.375, '轻度（每周 1-3 次运动）'], [1.55, '中度（每周 3-5 次运动）'], [1.725, '高度（每周 6-7 次）']].map(([v, l]) => ({ v: String(v), label: l }));
-  const typeOpts = [{ v: 'cardio', label: '有氧' }, { v: 'strength', label: '力量' }, { v: 'mixed', label: '混合' }, { v: 'rest', label: '休息' }];
-  const splitOpts = [{ v: 'none', label: '不分化（按日指定部位）' }, { v: 'split3', label: '三分化：胸+二头 / 背+三头 / 肩+腿' }, { v: 'split5', label: '五分化：胸 / 背 / 肩 / 腿 / 手臂' }];
-  const prefOpts = [[0, '偏少'], [1, '正常'], [2, '偏多'], [3, '很多']].map(([v, l]) => ({ v: String(v), label: l }));
-  const partOpts = Object.entries(BODY_PARTS).map(([v, o]) => ({ v, label: o.label + '部' }));
-  const bpSched = wp.bodyParts || {};
-  // 周计划：纵向 7 行，类型用分段按钮（4 选 1），力量/混合日显示部位下拉
-  const weekHTML = WEEK_CN.map((wd, i) => {
-    const d = i + 1;
-    const t = sched[d] || 'rest';
-    const showPart = t === 'strength' || t === 'mixed';
-    const segBtns = typeOpts.map(o => '<button type="button" class="seg-opt' + (o.v === t ? ' active' : '') + '" data-v="' + o.v + '">' + o.label + '</button>').join('');
-    const partBox = cxSelectHTML('bp-' + d, bpSched[d] || 'chest', partOpts); // 始终生成，显隐由 ws-part 控制
-    return '<div class="ws-row"><span class="ws-day">' + wd + '</span><div class="seg" data-cx="ws-' + d + '" data-val="' + t + '">' + segBtns + '</div><div class="ws-part" style="' + (showPart ? '' : 'display:none') + '">' + partBox + '</div></div>';
-  }).join('');
-  // 三餐营养偏好：3 餐 × 3 宏量矩阵
-  const mealHTML = (() => {
-    let html = '<div class="mg-blank"></div><div class="mg-head">蛋白质</div><div class="mg-head">碳水</div><div class="mg-head">脂肪</div>';
-    MEAL_KEYS.forEach(([k, label]) => {
-      const m = meals[k] || { proteinW: 1, carbW: 1, fatW: 1 };
-      html += '<div class="mg-meal">' + label + '</div>'
-        + '<div class="mg-cell">' + cxSelectHTML('mp-' + k + '-proteinW', String(m.proteinW), prefOpts, '正常') + '</div>'
-        + '<div class="mg-cell">' + cxSelectHTML('mp-' + k + '-carbW', String(m.carbW), prefOpts, '正常') + '</div>'
-        + '<div class="mg-cell">' + cxSelectHTML('mp-' + k + '-fatW', String(m.fatW), prefOpts, '正常') + '</div>';
-    });
-    return html;
-  })();
+  const tier = wp.volumeTier || (p.activity >= 1.65 ? '6-7h' : p.activity >= 1.5 ? '4-5h' : '2-3h');
+  const genderOpts = [{ v: 'male', label: '男' }, { v: 'female', label: '女' }];
+  const tierOpts = VOLUME_TIERS.map(t => ({ v: t.v, label: t.label }));
+  const splitOpts = [
+    { v: 'split5', label: '五分化 · 练5 + 有氧1 + 休1（7 天循环）' },
+    { v: 'split3', label: '三分化 · 练3 + 休1（4 天循环）' }
+  ];
   const m = openModal(`
     <h3 style="display:flex;align-items:center;gap:8px">${iconSvg('ui-cog', 'currentColor', 16)} 计划参数</h3>
     <div class="ps-block">
@@ -3075,98 +3062,81 @@ function openPlanSettings() {
         <div class="field"><label>年龄</label><input type="number" id="ps-age" value="${pf.age}"></div>
         <div class="field"><label>体脂率 (%)</label><input type="number" id="ps-bf" value="${pf.bodyFat}"></div>
       </div>
-      <div class="field" style="margin-top:12px"><label>日常活动水平</label>${cxSelectHTML('activity', String(pf.activity), actOpts)}</div>
+      <div class="field" style="margin-top:12px"><label>性别</label>${cxSelectHTML('ps-gender', pf.gender, genderOpts)}</div>
     </div>
     <div class="ps-block">
-      <div class="section-title">${iconSvg('dumbbell', 'currentColor', 14)} 每周运动计划<span class="ps-stat" id="weekStat"></span></div>
-      <div class="week-list">${weekHTML}</div>
-      <div class="field" style="margin-top:12px"><label>力量训练分化类型 <span class="mini" style="font-weight:500">（三分化/五分化时按训练日自动轮换部位）</span></label>${cxSelectHTML('splitType', wp.splitType || 'none', splitOpts)}</div>
-      <div class="field" style="margin-top:14px"><label>我有的器械 <span class="mini" style="font-weight:500">（可多选，无器械默认包含）</span></label>
-        <div class="chip-row" id="ps-gear" style="gap:7px">${GEAR_LIST.map(g => '<button class="chip ' + ((wp.myGear || ['none']).includes(g.v) ? 'active' : '') + '" data-gear="' + g.v + '" style="padding:6px 12px">' + g.label + '</button>').join('')}</div>
-      </div>
-    </div>
-    <div class="ps-block">
-      <div class="section-title">${iconSvg('ui-meal', 'currentColor', 14)} 三餐营养偏好<span class="mini" style="font-weight:500">如：早上多蛋白质、中午多碳水</span></div>
-      <div class="meal-grid">${mealHTML}</div>
-    </div>
-    <div class="ps-block">
-      <div class="section-title">${iconSvg('ui-chart', 'currentColor', 14)} 每日摄入目标（总量）</div>
+      <div class="section-title">${iconSvg('dumbbell', 'currentColor', 14)} 运动计划<span class="mini" style="font-weight:500">按周期循环，部位自动轮换</span></div>
       <div class="field-row">
-        <div class="field"><label>热量 (kcal)</label><input type="number" id="ps-kcal" value="${dp.kcal}" min="800" max="6000" step="50"></div>
-        <div class="field"><label>蛋白质 (g)</label><input type="number" id="ps-protein" value="${dp.protein}" min="0" step="5"></div>
-        <div class="field"><label>脂肪 (g)</label><input type="number" id="ps-fat" value="${dp.fat}" min="0" step="5"></div>
-        <div class="field"><label>碳水 (g)</label><input type="number" id="ps-carb" value="${dp.carb}" min="0" step="5"></div>
+        <div class="field"><label>每周运动量</label>${cxSelectHTML('ps-tier', tier, tierOpts)}</div>
+        <div class="field"><label>分化方案</label>${cxSelectHTML('ps-split', wp.splitType === 'split3' ? 'split3' : 'split5', splitOpts)}</div>
       </div>
+      <p class="mini" style="color:var(--text-3);margin:8px 0 0">五分化：5 天力量（胸/背/肩/腿/手臂）+ 1 天有氧 + 1 天休息；三分化：3 天力量（胸+二头/背+三头/肩+腿）+ 1 天休息</p>
     </div>
-    <p class="ps-note">${iconSvg('ui-info', 'currentColor', 13)} 保存后请重新「一键生成计划」，AI 将按你的详细设置输出计划与建议。</p>
-    <div class="modal-foot"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn" id="ps-save">保存并重新演算</button></div>
+    <div class="ps-block">
+      <div class="section-title">${iconSvg('ui-chart', 'currentColor', 14)} 每日摄入目标（体重系数 g/kg）<span class="mini" style="font-weight:500">随性别与运动量带出，可微调</span></div>
+      <div class="field-row">
+        <div class="field"><label>碳水 (g/kg)</label><input type="number" id="ps-carb-kg" step="0.1" min="0.5" max="8"></div>
+        <div class="field"><label>蛋白质 (g/kg)</label><input type="number" id="ps-protein-kg" step="0.1" min="0.5" max="4"></div>
+        <div class="field"><label>脂肪 (g/kg)</label><input type="number" id="ps-fat-kg" step="0.1" min="0.3" max="2"></div>
+      </div>
+      <div class="mini" id="ps-kg-summary" style="margin-top:8px;color:var(--text-3)"></div>
+    </div>
+    <p class="ps-note">${iconSvg('ui-info', 'currentColor', 13)} 保存后请重新「一键生成计划」，AI 将按周期输出训练与饮食安排。</p>
+    <div class="modal-foot"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn" id="ps-save">保存</button></div>
   `);
   m.classList.add('modal-plan');
-  bindCustomSelects(m); // 绑定部位 / 活动水平 / 分化 / 三餐偏好下拉
-  // 周计划类型分段按钮：切换高亮 + 联动部位显隐 + 更新训练日统计
-  m.querySelectorAll('.seg[data-cx^="ws-"]').forEach(seg => {
-    seg.addEventListener('click', e => {
-      const opt = e.target.closest('.seg-opt'); if (!opt) return;
-      seg.dataset.val = opt.dataset.v;
-      seg.querySelectorAll('.seg-opt').forEach(o => o.classList.toggle('active', o === opt));
-      const partBox = seg.closest('.ws-row')?.querySelector('.ws-part');
-      if (partBox) partBox.style.display = (opt.dataset.v === 'strength' || opt.dataset.v === 'mixed') ? '' : 'none';
-      updateWeekStat(m);
-    });
+  const updatePsSummary = () => {
+    const el = m.querySelector('#ps-kg-summary'); if (!el) return;
+    const w = +m.querySelector('#ps-weight').value || 66;
+    const c = +m.querySelector('#ps-carb-kg').value || 0, pr = +m.querySelector('#ps-protein-kg').value || 0, f = +m.querySelector('#ps-fat-kg').value || 0;
+    el.innerHTML = `按体重 <b>${w} kg</b> → 碳水 <b>${Math.round(c * w)}g</b> · 蛋白质 <b>${Math.round(pr * w)}g</b> · 脂肪 <b>${Math.round(f * w)}g</b> · 每日 <b>${Math.round(c * w * 4 + f * w * 9 + pr * w * 4)} kcal</b>`;
+  };
+  // 性别 / 运动量档位变化 → 按系数表重填三个输入框
+  const fillCoef = () => {
+    const g = m.querySelector('.cx-select[data-cx="ps-gender"]')?.dataset.val || 'male';
+    const t = m.querySelector('.cx-select[data-cx="ps-tier"]')?.dataset.val || '4-5h';
+    const [c, pr, f] = TIER_COEF[g][t] || TIER_COEF.male['4-5h'];
+    m.querySelector('#ps-carb-kg').value = c;
+    m.querySelector('#ps-protein-kg').value = pr;
+    m.querySelector('#ps-fat-kg').value = f;
+    updatePsSummary();
+  };
+  bindCustomSelects(m, wrap => {
+    const cx = wrap.dataset.cx;
+    if (cx === 'ps-gender' || cx === 'ps-tier') fillCoef();
   });
-  updateWeekStat(m);
-  // 器械多选（无器械始终勾选）
-  m.querySelector('#ps-gear').addEventListener('click', e => {
-    const chip = e.target.closest('.chip'); if (!chip) return;
-    if (chip.dataset.gear === 'none') return; // 无器械默认必含
-    chip.classList.toggle('active');
-  });
+  // 初始值：沿用已保存的 g/kg；未设置过则按档位带出
+  if (dp.carbPerKg && dp.proteinPerKg && dp.fatPerKg) {
+    m.querySelector('#ps-carb-kg').value = dp.carbPerKg;
+    m.querySelector('#ps-protein-kg').value = dp.proteinPerKg;
+    m.querySelector('#ps-fat-kg').value = dp.fatPerKg;
+    updatePsSummary();
+  } else fillCoef();
+  m.querySelector('#ps-weight').addEventListener('input', updatePsSummary);
+  ['ps-carb-kg', 'ps-protein-kg', 'ps-fat-kg'].forEach(id => m.querySelector('#' + id).addEventListener('input', updatePsSummary));
   m.querySelector('#ps-save').addEventListener('click', () => {
     const nn = (id, fb) => { const el = m.querySelector(id); const v = el ? +el.value : NaN; return isNaN(v) || v <= 0 ? fb : v; };
-    // 个人信息 + 摄入目标（输入框）
+    const tierV = m.querySelector('.cx-select[data-cx="ps-tier"]')?.dataset.val || '4-5h';
     Object.assign(state.profile, {
       height: nn('#ps-height', 178), weight: nn('#ps-weight', 66), age: nn('#ps-age', 30), bodyFat: nn('#ps-bf', 20),
-      activity: (m.querySelector('.cx-select[data-cx="activity"]')?.dataset.val) || 1.375
+      gender: m.querySelector('.cx-select[data-cx="ps-gender"]')?.dataset.val || 'male',
+      activity: TIER_ACTIVITY[tierV] || state.profile.activity || 1.55
     });
-    Object.assign(state.dietPlan, { kcal: nn('#ps-kcal', 1800), protein: nn('#ps-protein', 130), fat: nn('#ps-fat', 55), carb: nn('#ps-carb', 170) });
-    Object.assign(state.workoutPlan, { kcal: state.workoutPlan.kcal, minutes: state.workoutPlan.minutes, daysPerWeek: state.workoutPlan.daysPerWeek, bias: state.workoutPlan.bias });
-    // 周计划（分段按钮）+ 每日部位（下拉）
-    const sched = {};
-    const bodyParts = {};
-    m.querySelectorAll('.seg[data-cx^="ws-"]').forEach(w => { sched[w.dataset.cx.slice(3)] = w.dataset.val || 'rest'; });
-    m.querySelectorAll('.cx-select[data-cx^="bp-"]').forEach(w => { bodyParts[w.dataset.cx.slice(3)] = w.dataset.val || 'chest'; });
-    state.workoutPlan.weekSchedule = sched;
-    state.workoutPlan.bodyParts = bodyParts;
-    state.workoutPlan.splitType = m.querySelector('.cx-select[data-cx="splitType"]')?.dataset.val || 'none';
-    // 器械多选（强制含无器械）
-    state.workoutPlan.myGear = ['none', ...Array.from(m.querySelectorAll('#ps-gear .chip.active')).map(ch => ch.dataset.gear)];
-    // 三餐偏好（下拉）
-    const mealsData = {};
-    m.querySelectorAll('.cx-select[data-cx^="mp-"]').forEach(w => {
-      const parts = w.dataset.cx.slice(3).split('-');
-      mealsData[parts[0]] = mealsData[parts[0]] || {};
-      mealsData[parts[0]][parts[1]] = +(w.dataset.val != null ? w.dataset.val : 1);
+    Object.assign(state.workoutPlan, {
+      splitType: m.querySelector('.cx-select[data-cx="ps-split"]')?.dataset.val || 'split5',
+      volumeTier: tierV
     });
-    state.dietPlan.meals = mealsData;
-    // 总量克数 → 反算每公斤目标（保持两处输入一致）
-    const _wgt = state.profile.weight || 66;
-    state.dietPlan.proteinPerKg = +((state.dietPlan.protein || 0) / _wgt).toFixed(2);
-    state.dietPlan.fatPerKg = +((state.dietPlan.fat || 0) / _wgt).toFixed(2);
-    state.dietPlan.carbPerKg = +((state.dietPlan.carb || 0) / _wgt).toFixed(2);
+    const w = state.profile.weight || 66;
+    const cKg = Math.max(0.5, +m.querySelector('#ps-carb-kg').value || 3), pKg = Math.max(0.5, +m.querySelector('#ps-protein-kg').value || 1.6), fKg = Math.max(0.3, +m.querySelector('#ps-fat-kg').value || 0.8);
+    Object.assign(state.dietPlan, {
+      carbPerKg: cKg, proteinPerKg: pKg, fatPerKg: fKg,
+      carb: Math.round(cKg * w), protein: Math.round(pKg * w), fat: Math.round(fKg * w)
+    });
+    state.dietPlan.kcal = state.dietPlan.protein * 4 + state.dietPlan.fat * 9 + state.dietPlan.carb * 4;
     saveState();
     syncPlanInputs();
     closeModal(); toast('参数已保存，重新「一键生成计划」生效', 'ok');
   });
-}
-
-/* 计划参数弹窗：训练日/休息日统计徽章 */
-function updateWeekStat(m) {
-  const stat = m.querySelector('#weekStat'); if (!stat) return;
-  let train = 0, rest = 0;
-  m.querySelectorAll('.seg[data-cx^="ws-"]').forEach(seg => {
-    if (seg.dataset.val === 'rest') rest++; else train++;
-  });
-  stat.textContent = train + ' 训练日 · ' + rest + ' 休息日';
 }
 
 /* 摄入计划 / 运动计划表单与页面输入同步 */
@@ -3175,8 +3145,7 @@ function syncPlanInputs() {
   $('#planProteinKg').value = dp.proteinPerKg; $('#planFatKg').value = dp.fatPerKg; $('#planCarbKg').value = dp.carbPerKg;
   updatePlanKgSummary();
   $('#woTargetKcal').value = state.workoutPlan.kcal; $('#woTargetMin').value = state.workoutPlan.minutes;
-  $('#woDays').value = String(state.workoutPlan.daysPerWeek); $('#woBias').value = state.workoutPlan.bias;
-  const wsEl = $('#woSplit'); if (wsEl) wsEl.value = state.workoutPlan.splitType || 'none';
+  const wsEl = $('#woSplit'); if (wsEl) wsEl.value = state.workoutPlan.splitType === 'split3' ? 'split3' : 'split5';
   renderCalorieDeficit();
 }
 /* 按体重百分比（g/kg）换算每日克数与热量 */
@@ -3237,7 +3206,7 @@ function saveDietPlanFromForm() {
   saveState(); renderCalorieDeficit(); toast('摄入计划已保存（按体重百分比换算）', 'ok');
 }
 function saveWorkoutPlanFromForm() {
-  state.workoutPlan = { ...state.workoutPlan, kcal: +$('#woTargetKcal').value || 400, minutes: +$('#woTargetMin').value || 45, daysPerWeek: +$('#woDays').value || 5, bias: $('#woBias').value, splitType: $('#woSplit') ? $('#woSplit').value : (state.workoutPlan.splitType || 'none') };
+  state.workoutPlan = { ...state.workoutPlan, kcal: +$('#woTargetKcal').value || 400, minutes: +$('#woTargetMin').value || 45, splitType: $('#woSplit') ? $('#woSplit').value : (state.workoutPlan.splitType || 'split5') };
   saveState(); renderCalorieDeficit(); toast('运动计划已保存', 'ok');
 }
 
