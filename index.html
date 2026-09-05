@@ -657,6 +657,22 @@ input[type=number]{-moz-appearance:textfield}
 .picker-cats{margin-bottom:12px;gap:7px}
 .picker-cats .chip{padding:6px 12px;font-size:12px}
 @keyframes libSpin{to{transform:rotate(360deg)}}
+/* ── 库卡片直接添加 + 响应式协调 ── */
+#exGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.lib-add{position:absolute;right:6px;top:6px;width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;font-size:15px;font-weight:700;line-height:1;color:var(--text);background:var(--glass-strong,#fff);box-shadow:0 2px 6px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;padding:0}
+.lib-add.on{background:var(--accent,#6366f1);color:#fff}
+.pool-btn{border:1px solid var(--glass-border);background:transparent;color:var(--text-2);font-size:10.5px;font-weight:700;padding:2.5px 8px;border-radius:999px;cursor:pointer;line-height:1.4;white-space:nowrap}
+.pool-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.lc-ops{display:flex;align-items:center;gap:4px;flex-shrink:0}
+@media (max-width:640px){
+  .grid-3{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  #exGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  .lib-card .lc-name{font-size:12.5px}
+  .lib-card .lc-sub{font-size:10.5px}
+  .lc-ops{gap:3px}
+  .lc-ops .icon-btn{width:24px;height:24px}
+  .pool-btn{padding:2px 6px;font-size:10px}
+}
 </style>
 </head>
 <body>
@@ -756,13 +772,11 @@ input[type=number]{-moz-appearance:textfield}
         <div class="mini" id="planKgSummary" style="margin-bottom:14px;color:var(--text-3)"></div>
         <div class="section-title" style="margin:6px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 11h8M3 16h8M11 5v14M14 9h3M14 13h4"/></svg>早餐原料（生成食谱时早餐从这批食材搭配）</div>
         <div id="morningFoods" class="grid grid-3" style="margin-bottom:6px"></div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
-          <button class="btn ghost sm" id="btnPickFoodMorning">＋ 从食物库添加早餐原料</button>
-        </div>
+        <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方食物库点「+早」添加原料</div>
         <div class="section-title" style="margin:16px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 11h8M3 16h8M11 5v14M14 9h3M14 13h4"/></svg>午餐原料（生成食谱时午餐从这批食材搭配）</div>
         <div id="noonFoods" class="grid grid-3" style="margin-bottom:6px"></div>
+        <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方食物库点「+午」添加原料</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
-          <button class="btn ghost sm" id="btnPickFoodNoon">＋ 从食物库添加午餐原料</button>
           <button class="btn sm" id="btnSaveDietPlan"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l5 5v13H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 3v6h8V3M7 21v-6h10v6"/></svg> 保存摄入计划</button>
         </div>
       </div>
@@ -776,7 +790,11 @@ input[type=number]{-moz-appearance:textfield}
         <div id="weekMenuBox"></div>
       </div>
 
-<div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 4c-2.5 0-4.5 1.8-4.5 4 0 .6.2 1.2.5 1.7C6 10.3 4.5 12 4.5 14c0 2.2 2.3 4 5.5 4.3h4c3.2-.3 5.5-2.1 5.5-4.3 0-2-1.5-3.7-3.5-4.3.3-.5.5-1.1.5-1.7 0-2.2-2-4-4.5-4z"/><path d="M12 4V2.5M9 6.5c.6 1 1.6 1.8 2.8 2.3M15 6.5c-.8 1-1.8 1.8-3 2.3"/></svg>食物库<span class="sub">每百克营养 · 卡片内折线为 100/200/300g 营养变化 · 点击卡片可编辑</span></div>
+<div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 4c-2.5 0-4.5 1.8-4.5 4 0 .6.2 1.2.5 1.7C6 10.3 4.5 12 4.5 14c0 2.2 2.3 4 5.5 4.3h4c3.2-.3 5.5-2.1 5.5-4.3 0-2-1.5-3.7-3.5-4.3.3-.5.5-1.1.5-1.7 0-2.2-2-4-4.5-4z"/><path d="M12 4V2.5M9 6.5c.6 1 1.6 1.8 2.8 2.3M15 6.5c-.8 1-1.8 1.8-3 2.3"/></svg>食物库<span class="sub">点 +早 / +午 加入对应餐原料 · 点击卡片可编辑</span></div>
+      <div class="lib-filter" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+        <input id="foodKw" placeholder="搜索食物 / 分类…" style="flex:1;min-width:160px;padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);font-size:13px">
+        <button class="chip" id="foodAddedOnly" style="padding:8px 14px">只看已添加</button>
+      </div>
       <div class="grid grid-3" id="foodGrid"></div>
     </section>
 
@@ -799,8 +817,8 @@ input[type=number]{-moz-appearance:textfield}
         </div>
         <div class="section-title" style="margin:6px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="13" cy="4.5" r="1.8"/><path d="M10 8.5l-3.5 1 .5 1.5L10 10l4 3 .5 6 2 .3.5-5.3L13 9l2-3.5-3-1-2 4z"/></svg>偏好运动（训练清单从中轮换）</div>
         <div id="planExercises" class="grid grid-3" style="margin-bottom:6px"></div>
+        <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方运动库点「+」添加动作（自动加入偏好运动）</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
-          <button class="btn ghost sm" id="btnPickExercise">＋ 从运动库添加运动</button>
           <button class="btn sm" id="btnSaveWorkoutPlan"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l5 5v13H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 3v6h8V3M7 21v-6h10v6"/></svg> 保存运动计划</button>
         </div>
         <!-- 每日热量缺口实时计算 -->
@@ -813,8 +831,9 @@ input[type=number]{-moz-appearance:textfield}
         <select id="libBody" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);font-size:13px"><option value="">全部部位</option></select>
         <select id="libEquip" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);font-size:13px"><option value="">全部器械</option></select>
         <button class="btn ghost sm" id="libClear" style="padding:8px 14px">重置</button>
+        <button class="chip" id="libAddedOnly" style="padding:8px 14px">只看已添加</button>
       </div>
-      <div id="exGrid" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px"></div>
+      <div id="exGrid"></div>
     </section>
 
     <!-- 动作库详情弹层 -->
@@ -1549,10 +1568,12 @@ function renderLibrary() {
     }
     return true;
   });
+  const addedOnly = document.getElementById('libAddedOnly')?.classList.contains('active');
+  if (addedOnly) LIB_FILTERED = LIB_FILTERED.filter(x => libAdded(x.srcId));
   const grid = document.getElementById('exGrid');
   if (!grid) return;
   if (!LIB_FILTERED.length) {
-    grid.innerHTML = `<div class="empty-hint" style="grid-column:1/-1">暂无匹配动作</div>`;
+    grid.innerHTML = `<div class="empty-hint" style="grid-column:1/-1">${addedOnly ? '暂无已添加动作——在动作卡右上加「+」即可加入运动库' : '暂无匹配动作'}</div>`;
     return;
   }
   const pageSize = 24;
@@ -1565,6 +1586,7 @@ function renderLibrary() {
           style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"
           onerror="libImgFallback(this, '${esc(x.nameZh.slice(0, 1))}')">
         <span style="position:absolute;left:4px;top:4px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px">${esc(x.bodyPart || '')}</span>
+        <button class="lib-add ${libAdded(x.srcId) ? 'on' : ''}" onclick="event.stopPropagation();toggleLibExercise('${esc(x.srcId)}')" title="${libAdded(x.srcId) ? '已加入运动库 · 点击移除' : '加入运动库与偏好运动'}">${libAdded(x.srcId) ? '✓' : '+'}</button>
       </div>
       <div style="padding:5px 3px 1px;font-size:11.5px;font-weight:600;color:var(--text);line-height:1.25">${esc(x.nameZh)}</div>
       <div style="padding:0 3px 5px;font-size:10.5px;color:var(--text-3, #999)">${esc(x.equipment || '')}${x.target ? ' · ' + esc(x.target) : ''}</div>
@@ -1833,6 +1855,7 @@ function foodCardHTML(f) {
     { v: [f.carb, f.carb * 2, f.carb * 3], color: '#F59E0B' },
     { v: [f.fat, f.fat * 2, f.fat * 3], color: '#EC4899' }
   ], 3);
+  const mIn = (state.dietPlan.morningFoodIds || []).includes(f.id), nIn = (state.dietPlan.noonFoodIds || []).includes(f.id);
   return `<div class="lib-card" data-food="${f.id}">
     <div class="lc-row">
       <div class="ico-badge sm" style="background:${badgeColor(li.color)}">${iconSvg(li.icon, li.color, 18)}</div>
@@ -1840,15 +1863,20 @@ function foodCardHTML(f) {
         <div class="lc-name">${esc(f.name)}</div>
         <div class="lc-sub">${f.kcal} kcal/100g · ${SUB_LABEL[f.sub] || CAT_META[f.cat]?.label || f.cat}</div>
       </div>
-      <div class="lc-ops"><button class="icon-btn" data-act="edit" title="编辑">${iconSvg('ui-edit', 'currentColor', 15)}</button><button class="icon-btn del" data-act="del" title="删除">${iconSvg('ui-trash', 'currentColor', 15)}</button></div>
+      <div class="lc-ops"><button class="pool-btn ${mIn ? 'on' : ''}" data-pool="morning" title="${mIn ? '移出早餐原料' : '加入早餐原料'}">${mIn ? '✓早' : '+早'}</button><button class="pool-btn ${nIn ? 'on' : ''}" data-pool="noon" title="${nIn ? '移出午餐原料' : '加入午餐原料'}">${nIn ? '✓午' : '+午'}</button><button class="icon-btn" data-act="edit" title="编辑">${iconSvg('ui-edit', 'currentColor', 15)}</button><button class="icon-btn del" data-act="del" title="删除">${iconSvg('ui-trash', 'currentColor', 15)}</button></div>
     </div>
     <div class="lc-foot"><span class="n-chip" style="color:#3B82F6">蛋白质 ${f.protein}g</span><span class="n-chip" style="color:#F59E0B">C ${f.carb}g</span><span class="n-chip" style="color:#EC4899">F ${f.fat}g</span><span class="n-chip" style="color:var(--text-3)">纤维 ${f.fiber}g</span></div>
   </div>`;
 }
-function renderFoods(filter = '') {
+function renderFoods() {
   const grid = $('#foodGrid');
-  const list = state.foods.filter(f => !filter || f.name.includes(filter) || (CAT_META[f.cat]?.label || '').includes(filter) || (SUB_LABEL[f.sub] || '').includes(filter));
-  if (!list.length) { grid.innerHTML = `<div class="empty-hint" style="grid-column:1/-1"><b>暂无食物</b>点击右上角「新增食物」添加</div>`; return; }
+  const kw = ($('#foodKw')?.value || '').trim();
+  const addedOnly = $('#foodAddedOnly')?.classList.contains('active');
+  const isAdded = f => state.dietPlan.morningFoodIds.includes(f.id) || state.dietPlan.noonFoodIds.includes(f.id);
+  const list = state.foods.filter(f =>
+    (!kw || f.name.includes(kw) || (CAT_META[f.cat]?.label || '').includes(kw) || (SUB_LABEL[f.sub] || '').includes(kw)) &&
+    (!addedOnly || isAdded(f)));
+  if (!list.length) { grid.innerHTML = `<div class="empty-hint" style="grid-column:1/-1"><b>${addedOnly ? '暂无已添加的食物' : '暂无食物'}</b>${addedOnly ? '在食物库卡片上点「+早」/「+午」加入原料' : '点击右上角「新增食物」添加'}</div>`; return; }
   // 大组 → 子类两级分组，组内按每百克热量倒序
   const rows = LIB_GROUPS.map(g => {
     const blocks = g.subs.map(([sk, sl]) => {
@@ -1873,12 +1901,63 @@ function renderFoods(filter = '') {
   grid.innerHTML = rows + unknownRows;
   $$('#foodGrid .lib-card').forEach(card => {
     card.addEventListener('click', e => {
+      const pool = e.target.closest('button')?.dataset?.pool;
+      if (pool) { toggleFoodPool(card.dataset.food, pool); return; }
       const act = e.target.closest('button')?.dataset?.act;
       if (act === 'edit') openFoodModal(card.dataset.food);
       else if (act === 'del') deleteFood(card.dataset.food);
       else openFoodModal(card.dataset.food);
     });
   });
+}
+/* 食物卡 +早 / +午：加入或移出对应餐原料池（就地更新，不整页重载） */
+function toggleFoodPool(id, pool) {
+  const key = pool === 'morning' ? 'morningFoodIds' : 'noonFoodIds';
+  const arr = state.dietPlan[key];
+  const i = arr.indexOf(id);
+  if (i >= 0) arr.splice(i, 1); else arr.push(id);
+  saveState(); renderFoods(); renderPlanFoods();
+}
+/* 动作库 → 运动库：部位/器械映射 */
+function libPart(bp) {
+  bp = bp || '';
+  if (/胸/.test(bp)) return 'chest';
+  if (/背/.test(bp)) return 'back';
+  if (/肩/.test(bp)) return 'shoulder';
+  if (/臂|二头|三头|手/.test(bp)) return 'arm';
+  if (/腿|臀|小腿|股|髋/.test(bp)) return 'leg';
+  if (/腹|核心|腰/.test(bp)) return 'core';
+  return 'chest';
+}
+function libGear(eq) {
+  eq = eq || '';
+  if (/杠铃/.test(eq)) return 'barbell';
+  if (/哑铃/.test(eq)) return 'dumbbell';
+  if (/自重|无器械/.test(eq)) return 'none';
+  if (/单杠|引体/.test(eq)) return 'bar';
+  if (/绳|器械|坐姿|推胸|龙门|夹|飞鸟|腿举|屈伸|提踵|划船|史密斯|器/.test(eq)) return 'machine';
+  if (/弹力/.test(eq)) return 'band';
+  if (/战绳/.test(eq)) return 'rope';
+  return 'none';
+}
+function libAdded(srcId) { return state.exercises.some(e => e.libId === srcId); }
+/* 动作卡 +：加入运动库并自动加入偏好运动；再点移除 */
+function toggleLibExercise(srcId) {
+  const x = LIB_ALL.find(i => i.srcId === srcId); if (!x) return;
+  const idx = state.exercises.findIndex(e => e.libId === srcId);
+  if (idx >= 0) {
+    const id = state.exercises[idx].id;
+    state.exercises.splice(idx, 1);
+    state.workoutPlan.exerciseIds = state.workoutPlan.exerciseIds.filter(v => v !== id);
+    toast('已从运动库移除', 'ok');
+  } else {
+    const part = libPart(x.bodyPart);
+    const e = { id: 'lib-' + x.srcId, name: x.nameZh || x.name, cat: 'strength', met: 4.5, icon: 'dumbbell', color: (BODY_PARTS[part] || {}).color || '#8b5cf6', part, gear: libGear(x.equipment), libId: x.srcId };
+    state.exercises.push(e);
+    state.workoutPlan.exerciseIds.push(e.id);
+    toast('已加入运动库与偏好运动', 'ok');
+  }
+  saveState(); renderLibrary(); renderPlanExercises();
 }
 function openFoodModal(id = null) {
   const f = id ? foodById(id) : { name: '', sub: 'meat', kcal: 100, protein: 10, fat: 5, carb: 10, fiber: 1, icon: 'protein', color: '#6366f1' };
@@ -2039,7 +2118,7 @@ function renderPlanFoods() {
 }
 function renderFoodPool(boxId, ids) {
   const box = document.getElementById(boxId); if (!box) return;
-  if (!ids.length) { box.innerHTML = `<div class="empty-hint" style="grid-column:1/-1;padding:14px"><b>尚未选择原料</b>点击下方「从食物库添加」</div>`; return; }
+  if (!ids.length) { box.innerHTML = `<div class="empty-hint" style="grid-column:1/-1;padding:14px"><b>尚未选择原料</b>去下方食物库点「${boxId === 'morningFoods' ? '+早' : '+午'}」添加</div>`; return; }
   const items = ids.map(id => foodById(id)).filter(Boolean);
   const card = f => { const g = LIB_GROUPS.find(x => x.cats.includes(f.cat)); const li = g ? (LIB_ICONS[g.key] || { icon: 'ui-meal', color: '#94A3B8' }) : { icon: 'ui-meal', color: '#94A3B8' }; return `
     <div class="lib-card">
@@ -2065,7 +2144,7 @@ function renderFoodPool(boxId, ids) {
 function renderPlanExercises() {
   const ids = state.workoutPlan.exerciseIds;
   const box = $('#planExercises');
-  if (!ids.length) { box.innerHTML = `<div class="empty-hint" style="grid-column:1/-1;padding:16px"><b>尚未选择运动</b>点击「从运动库添加运动」</div>`; return; }
+  if (!ids.length) { box.innerHTML = `<div class="empty-hint" style="grid-column:1/-1;padding:16px"><b>尚未选择运动</b>去下方运动库点「+」添加动作</div>`; return; }
   const items = ids.map(id => exById(id)).filter(Boolean);
   const card = e0 => { const li = LIB_ICONS[e0.cat] || { icon: 'ex-run', color: '#94A3B8' }; return `
     <div class="lib-card">
@@ -2096,100 +2175,6 @@ function renderPlanExercises() {
     saveState(); renderPlanExercises();
   }));
 }
-function openPicker(type, pool) {
-  const isFood = type === 'food';
-  const items = isFood ? state.foods : state.exercises;
-  const curArr = isFood ? (pool === 'morning' ? state.dietPlan.morningFoodIds : pool === 'noon' ? state.dietPlan.noonFoodIds : state.dietPlan.foodIds) : state.workoutPlan.exerciseIds;
-  const chosen = new Set(curArr);
-  // 分类快捷切换（食物按 4 大组 / 运动按 4 类别）
-  const catTabs = isFood
-    ? [['all', '全部'], ...LIB_GROUPS.map(g => [g.key, g.label])]
-    : [['all', '全部'], ['cardio', '有氧'], ['strength', '无氧'], ['yoga', '拉伸体态'], ['daily', '日常活动']];
-  let curCat = 'all', curSub = 'all';
-  const cardCat = it => isFood ? (LIB_GROUPS.find(x => x.cats.includes(it.cat))?.key || 'other') : (it.cat || 'other');
-  // 子分类：食物=大组下的精细子类；运动=无氧下的部位（肩胸腹手腿）
-  const subTabsFor = cat => {
-    if (cat === 'all') return null;
-    if (isFood) { const g = LIB_GROUPS.find(x => x.key === cat); return g ? [['all', '全部'], ...g.subs] : null; }
-    if (cat === 'strength') return [['all', '全部部位'], ...Object.entries(BODY_PARTS).map(([v, o]) => [v, o.label + '部'])];
-    return null;
-  };
-  const cardSub = it => isFood ? (it.sub || 'other') : (it.cat === 'strength' ? (it.part || 'other') : (it.cat || 'other'));
-  const m = openModal(`
-    <h3>${isFood ? '选择计划食材' : '选择偏好运动'}</h3>
-    <div class="picker-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg><input id="pickerSearch" placeholder="${isFood ? '搜索食材名称 / 精细分类（如：肉、鱼虾）…' : '搜索运动名称 / 类型（如：有氧、力量）…'}"></div>
-    <div class="chip-row picker-cats" id="pickerCats">${catTabs.map(([v, l], i) => `<button class="chip ${i === 0 ? 'active' : ''}" data-cat="${v}">${l}</button>`).join('')}</div>
-    <div class="chip-row picker-cats" id="pickerSubs" style="display:none;gap:7px"></div>
-    <div class="grid grid-3" style="max-height:44vh;overflow-y:auto;padding-right:4px" id="pickerList">
-      ${items.map(it => {
-        const subTxt = isFood ? (SUB_LABEL[it.sub] || '') : (CAT_META[it.cat]?.label || '');
-        return `<div class="lib-card ${chosen.has(it.id) ? 'picked' : ''}" data-id="${it.id}" data-name="${esc(it.name)}" data-sub="${esc(subTxt)}" data-kcal="${isFood ? it.kcal : ''}" data-met="${isFood ? '' : it.met}" data-cat="${cardCat(it)}" data-subcat="${cardSub(it)}" style="${chosen.has(it.id) ? 'box-shadow:0 0 0 2px var(--accent)' : ''}">
-          <div class="lc-row">
-            <div class="ico-badge sm" style="background:${badgeColor(it.color)}">${iconSvg(it.icon, it.color, 16)}</div>
-            <div class="lc-info"><div class="lc-name">${esc(it.name)}</div><div class="lc-sub">${isFood ? it.kcal + ' kcal/100g · P' + it.protein + (subTxt ? ' · ' + subTxt : '') : 'MET ' + it.met + (subTxt ? ' · ' + subTxt : '')}</div></div>
-            <span style="color:var(--accent);font-weight:700">${chosen.has(it.id) ? iconSvg('ui-check', 'currentColor', 16) : ''}</span>
-          </div>
-        </div>`; }).join('')}
-    </div>
-    <div class="modal-foot"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn" id="picker-ok">确定 (${chosen.size})</button></div>
-  `);
-  const list = m.querySelector('#pickerList');
-  const okBtn = m.querySelector('#picker-ok');
-  const search = m.querySelector('#pickerSearch');
-  // 分类 + 关键词 组合过滤
-  const subsBox = m.querySelector('#pickerSubs');
-  const applyFilter = () => {
-    const kw = search.value.trim().toLowerCase();
-    $$('#pickerList .lib-card').forEach(card => {
-      const hay = [card.dataset.name, card.dataset.sub, card.dataset.kcal, card.dataset.met].join(' ').toLowerCase();
-      const hitCat = curCat === 'all' || card.dataset.cat === curCat;
-      const hitSub = curSub === 'all' || card.dataset.subcat === curSub;
-      const hitKw = !kw || hay.includes(kw);
-      card.style.display = (hitCat && hitSub && hitKw) ? '' : 'none';
-    });
-  };
-  const renderSubs = () => {
-    const tabs = subTabsFor(curCat);
-    if (tabs) {
-      curSub = 'all';
-      subsBox.style.display = 'flex';
-      subsBox.innerHTML = tabs.map(([v, l], i) => `<button class="chip ${i === 0 ? 'active' : ''}" data-sub="${v}" style="padding:5px 10px;font-size:11.5px">${l}</button>`).join('');
-    } else { subsBox.style.display = 'none'; subsBox.innerHTML = ''; curSub = 'all'; }
-  };
-  search.addEventListener('input', applyFilter);
-  m.querySelector('#pickerCats').addEventListener('click', e => {
-    const chip = e.target.closest('.chip'); if (!chip) return;
-    $$('#pickerCats .chip').forEach(x => x.classList.remove('active'));
-    chip.classList.add('active');
-    curCat = chip.dataset.cat;
-    renderSubs();
-    applyFilter();
-  });
-  subsBox.addEventListener('click', e => {
-    const chip = e.target.closest('.chip'); if (!chip) return;
-    $$('#pickerSubs .chip').forEach(x => x.classList.remove('active'));
-    chip.classList.add('active');
-    curSub = chip.dataset.sub;
-    applyFilter();
-  });
-  list.addEventListener('click', e => {
-    const card = e.target.closest('.lib-card'); if (!card) return;
-    const id = card.dataset.id;
-    if (chosen.has(id)) { chosen.delete(id); card.classList.remove('picked'); card.style.boxShadow = ''; card.querySelector('span').textContent = ''; }
-    else { chosen.add(id); card.classList.add('picked'); card.style.boxShadow = '0 0 0 2px var(--accent)'; card.querySelector('span').innerHTML = iconSvg('ui-check', 'currentColor', 16); }
-    okBtn.textContent = `确定 (${chosen.size})`;
-  });
-  okBtn.addEventListener('click', () => {
-    const arr = Array.from(chosen);
-    if (isFood) {
-      if (pool === 'morning') state.dietPlan.morningFoodIds = arr;
-      else if (pool === 'noon') state.dietPlan.noonFoodIds = arr;
-      else state.dietPlan.foodIds = arr;
-    } else state.workoutPlan.exerciseIds = arr;
-    saveState(); isFood ? renderPlanFoods() : renderPlanExercises(); closeModal();
-  });
-}
-
 /*__APP_JS_3__*/
 /* ════════════════════════════════════════════════════════════
    第三部分：计划生成引擎 · 一周食谱 · 日历 · 时间轴
@@ -2259,7 +2244,7 @@ function buildDayWorkout(dayType, parts) {
   const wp = state.workoutPlan, p = state.profile;
   const bias = dayType === 'cardio' ? 'cardio' : dayType === 'strength' ? 'strength' : (wp.bias || 'mixed');
   const exIds = wp.exerciseIds.length ? wp.exerciseIds : state.exercises.slice(0, 5).map(e => e.id);
-  const gear = wp.myGear && wp.myGear.length ? wp.myGear : GEAR_LIST.map(g => g.v); // 我有的器械（无器械必含）
+  const gear = GEAR_LIST.map(g => g.v); // 周期制下不限器械
   const cardio = state.exercises.filter(e => e.cat === 'cardio' && exIds.includes(e.id));
   const strength = state.exercises.filter(e => e.cat === 'strength' && exIds.includes(e.id) && (!e.part || !partArr.length || partArr.includes(e.part)) && (!e.gear || gear.includes(e.gear)));
   const cPool = cardio.length ? cardio : state.exercises.filter(e => e.cat === 'cardio');
@@ -3291,14 +3276,15 @@ function initEvents() {
   $('#btnGenWeekMenu').addEventListener('click', generateWeekMenu);
   // 食物库
   $('#btnAddFood').addEventListener('click', () => openFoodModal());
-  // 摄入计划（早/午原料池）
-  $('#btnPickFoodMorning').addEventListener('click', () => openPicker('food', 'morning'));
-  $('#btnPickFoodNoon').addEventListener('click', () => openPicker('food', 'noon'));
+  // 摄入计划
   $('#btnSaveDietPlan').addEventListener('click', saveDietPlanFromForm);
   // 运动库
   $('#btnAddExercise').addEventListener('click', () => openExerciseModal());
-  $('#btnPickExercise').addEventListener('click', () => openPicker('exercise'));
   $('#btnSaveWorkoutPlan').addEventListener('click', saveWorkoutPlanFromForm);
+  // 库筛选：搜索 + 只看已添加
+  $('#foodKw').addEventListener('input', renderFoods);
+  $('#foodAddedOnly').addEventListener('click', () => { $('#foodAddedOnly').classList.toggle('active'); renderFoods(); });
+  $('#libAddedOnly').addEventListener('click', () => { $('#libAddedOnly').classList.toggle('active'); LIB_PAGE = 1; renderLibrary(); });
   // 运动消耗输入实时联动热量缺口计算
   $('#woTargetKcal').addEventListener('input', e => renderCalorieDeficit(e.target.value));
   // 设置
