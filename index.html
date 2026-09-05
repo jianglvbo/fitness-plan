@@ -657,22 +657,11 @@ input[type=number]{-moz-appearance:textfield}
 .picker-cats{margin-bottom:12px;gap:7px}
 .picker-cats .chip{padding:6px 12px;font-size:12px}
 @keyframes libSpin{to{transform:rotate(360deg)}}
-/* ── 库卡片直接添加 + 响应式协调 ── */
-#exGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+/* ── 库卡片直接添加按钮 ── */
 .lib-add{position:absolute;right:6px;top:6px;width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;font-size:15px;font-weight:700;line-height:1;color:var(--text);background:var(--glass-strong,#fff);box-shadow:0 2px 6px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;padding:0}
 .lib-add.on{background:var(--accent,#6366f1);color:#fff}
 .pool-btn{border:1px solid var(--glass-border);background:transparent;color:var(--text-2);font-size:10.5px;font-weight:700;padding:2.5px 8px;border-radius:999px;cursor:pointer;line-height:1.4;white-space:nowrap}
 .pool-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
-.lc-ops{display:flex;align-items:center;gap:4px;flex-shrink:0}
-@media (max-width:640px){
-  .grid-3{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
-  #exGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
-  .lib-card .lc-name{font-size:12.5px}
-  .lib-card .lc-sub{font-size:10.5px}
-  .lc-ops{gap:3px}
-  .lc-ops .icon-btn{width:24px;height:24px}
-  .pool-btn{padding:2px 6px;font-size:10px}
-}
 </style>
 </head>
 <body>
@@ -833,7 +822,7 @@ input[type=number]{-moz-appearance:textfield}
         <button class="btn ghost sm" id="libClear" style="padding:8px 14px">重置</button>
         <button class="chip" id="libAddedOnly" style="padding:8px 14px">只看已添加</button>
       </div>
-      <div id="exGrid"></div>
+      <div id="exGrid" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px"></div>
     </section>
 
     <!-- 动作库详情弹层 -->
