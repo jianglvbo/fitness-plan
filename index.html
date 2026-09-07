@@ -832,7 +832,7 @@ input[type=number]{-moz-appearance:textfield}
         <button class="btn sm" id="btnAddFood">＋ 新增食物</button>
       </div>
 
-      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>摄入计划<span class="sub">勾选即自动保存 · 营养目标在「计划参数」中设置</span></div>
+      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>摄入计划</div>
       <div class="card">
         <div class="section-title" style="margin:6px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 11h8M3 16h8M11 5v14M14 9h3M14 13h4"/></svg>早餐原料（生成食谱时早餐从这批食材搭配）</div>
         <div id="morningFoods" class="grid grid-3" style="margin-bottom:6px"></div>
@@ -869,7 +869,7 @@ input[type=number]{-moz-appearance:textfield}
         <button class="btn sm" id="btnAddExercise">＋ 新增运动</button>
       </div>
 
-      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>运动计划<span class="sub">勾选即自动保存 · 目标与分化在「计划参数」中设置</span></div>
+      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>运动计划</div>
       <div class="card">
         <div class="section-title" style="margin:6px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="13" cy="4.5" r="1.8"/><path d="M10 8.5l-3.5 1 .5 1.5L10 10l4 3 .5 6 2 .3.5-5.3L13 9l2-3.5-3-1-2 4z"/></svg>偏好运动（训练清单从中轮换）</div>
         <div id="planExercises" class="grid grid-3" style="margin-bottom:6px"></div>
@@ -2870,7 +2870,7 @@ async function generateWeekMenu() {
 function renderWeekMenu() {
   const box = $('#weekMenuBox'); if (!box) return;
   const wm = state.weekMenu, meta = $('#weekMenuMeta');
-  if (!wm || !wm.days) { box.innerHTML = `<div class="empty-hint" style="padding:18px"><b>还没有一周食谱</b>选好早/午餐原料并保存摄入计划后，点击「AI 生成一周食谱」</div>`; if (meta) meta.textContent = ''; return; }
+  if (!wm || !wm.days) { box.innerHTML = `<div class="empty-hint" style="padding:18px"><b>还没有一周食谱</b>选好早/午餐原料后，点击「AI 生成一周食谱」</div>`; if (meta) meta.textContent = ''; return; }
   if (meta) meta.textContent = `${wm.source === 'ai' ? 'AI 生成' : '本地引擎'} · ${new Date(wm.generatedAt).toLocaleString('zh-CN')}`;
   const t = wm.totals || {};
   const totalsHTML = `<div class="grid grid-4" style="margin:10px 0">
