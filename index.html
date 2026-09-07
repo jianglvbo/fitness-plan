@@ -321,7 +321,9 @@ textarea{resize:vertical;min-height:70px}
 /* ============================================================
    通用组件
    ============================================================ */
-.section-title{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:700;margin:26px 0 14px}
+.section-title{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:17px;font-weight:700;margin:26px 0 10px}
+.section-title .ttl-text{white-space:nowrap;flex-shrink:0}
+.section-title .sub{flex-basis:100%;margin-top:2px}
 .section-title::before{content:'';width:5px;height:18px;border-radius:3px;background:var(--accent-grad)}
 .section-title .sub{font-size:12.5px;color:var(--text-3);font-weight:400;margin-left:4px}
 
@@ -512,6 +514,25 @@ td .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11p
 @keyframes spin{to{transform:rotate(360deg)}}
 .ai-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent)}
 
+/* ═══════════ 食物库 / 运动库（桌面 ≥861px 默认布局，与原内联值一致） ═══════════ */
+.lib-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.lib-filter{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.lib-filter .lf-input{flex:1;min-width:150px;padding:9px 12px;border-radius:9px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);font-size:13px;outline:none;-webkit-appearance:none;appearance:none}
+.lib-filter .lf-input:focus{border-color:var(--accent)}
+.lib-filter .lf-select{padding:8px 10px;border-radius:9px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);font-size:13px;outline:none}
+/* 动作卡文字（renderLibrary 模板 class 化，桌面字号与原 inline 一致） */
+.gc-name{padding:5px 3px 1px;font-size:11.5px;font-weight:600;color:var(--text);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.gc-sub{padding:0 3px 5px;font-size:10.5px;color:var(--text-3,#999);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 动作详情 GIF（桌面 220px 侧栏图） */
+.ld-gif{width:220px;flex-shrink:0}
+/* 动作详情弹层（mask + box；JS 以 style.display 控制显隐） */
+.lib-modal-mask{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
+.lib-modal-box{background:var(--glass-strong,#fff);border:1px solid var(--glass-border);border-radius:16px;max-width:640px;width:100%;max-height:86vh;overflow-y:auto;padding:20px 24px;position:relative;color:var(--text);box-shadow:var(--shadow-md,0 14px 36px rgba(0,0,0,.2))}
+/* 弹窗右上角关闭钮：深色圆底白×，醒目可点 */
+.lib-modal-close{position:absolute;right:10px;top:10px;width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;font-size:21px;line-height:1;color:#fff;background:rgba(0,0,0,.58);display:flex;align-items:center;justify-content:center;z-index:5;padding:0;transition:background .2s ease,transform .15s ease}
+.lib-modal-close:hover{background:rgba(0,0,0,.8)}
+.lib-modal-close:active{transform:scale(.92)}
+
 /* 响应式 */
 @media(max-width:860px){
   .sidebar{display:none}
@@ -519,6 +540,17 @@ td .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11p
   .main{padding:20px 16px 100px}
   .page-head h1{font-size:22px}
   .pred-stats{grid-template-columns:repeat(2,1fr)}
+  /* 食物/运动库：小屏 3 列 + 运动库搜索独占一行、控件随内容换行 */
+  .lib-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  #libKw{flex-basis:100%}
+  .lib-filter .lf-select{flex:1 1 44%;min-width:0}
+  .lib-filter .chip,.lib-filter .btn{padding:7px 13px;font-size:12.5px}
+  /* 移动端：隐藏 inline 顶部按钮，改用右下角圆形悬浮按钮 */
+  .lf-top{display:none}
+  .lib-to-top-fab{display:flex;position:fixed;right:16px;bottom:96px;width:44px;height:44px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;z-index:55;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;border:none;font-size:20px;font-weight:700;transition:transform .15s ease}
+  .lib-to-top-fab:active{transform:scale(.94)}
+  #page-diet:not(.active) #fbToTopFab,
+  #page-workout:not(.active) #libToTopFab{display:none}
   /* 运动日历 + 周减脂预估：移动端上下堆叠并铺满，避免右侧空白 */
   .cal-wrap{flex-direction:column;gap:12px}
   .cal-wrap .cal-nav{min-width:0;width:100%}
@@ -527,12 +559,33 @@ td .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11p
 @media(max-width:480px){
   .pred-stats{grid-template-columns:1fr 1fr}
   .modal{padding:18px}
+  /* 食物/运动库小屏：字号略升、触控目标放大、详情弹层近全屏 */
+  .lib-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .lib-card{padding:11px;gap:8px;border-radius:13px}
+  .gc-name{font-size:12px}
+  .gc-sub{font-size:11px}
+  .lib-card .lc-name{font-size:15px}
+  .lib-card .lc-sub{font-size:12px}
+  .n-chip{font-size:11px}
+  .lib-add{width:30px;height:30px;font-size:16px}
+  .icon-btn{width:32px;height:32px}
+  .pool-btn{padding:3.5px 10px;font-size:11.5px}
+  .lib-modal-mask{padding:0}
+  .lib-modal-box{max-width:100%;border-radius:0;border-left:none;border-right:none;border-top:none;max-height:100vh;padding:26px 16px calc(20px + env(safe-area-inset-bottom))}
+  .ld-gif{width:100%}
+  .gif-thumb{width:42px;height:42px}
+  .lib-to-top-fab{bottom:calc(80px + env(safe-area-inset-bottom))}
 }
 @media(min-width:861px){
   .sidebar{display:flex}
+  /* 桌面同样用右下角圆形悬浮回到顶部（替代已移除的 inline 顶部按钮） */
+  .lib-to-top-fab{display:flex;position:fixed;right:22px;bottom:26px;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center;z-index:55;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;border:none;font-size:19px;font-weight:700;transition:transform .15s ease}
+  .lib-to-top-fab:hover{transform:scale(1.06)}
+  #page-diet:not(.active) #fbToTopFab,
+  #page-workout:not(.active) #libToTopFab{display:none}
 }
 /* ── 每日热量缺口（运动计划页） ── */
-.def-block{margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--glass-strong);border:1px solid var(--glass-border)}
+.def-block{margin-top:16px;padding:14px 16px;border-radius:14px;background:var(--glass-strong);border:1px solid var(--glass-border);display:flex;flex-direction:column;align-items:flex-start;gap:8px}
 .def-formula{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .df-item{display:flex;align-items:baseline;gap:4px;background:var(--glass-strong);border:1px solid var(--glass-border);border-radius:10px;padding:6px 10px}
 .df-item .df-k{font-size:10.5px;color:var(--text-3)}
@@ -660,6 +713,29 @@ input[type=number]{-moz-appearance:textfield}
 /* ── 库卡片直接添加按钮 ── */
 .lib-add{position:absolute;right:6px;top:6px;width:26px;height:26px;border-radius:50%;border:none;cursor:pointer;font-size:15px;font-weight:700;line-height:1;color:var(--text);background:var(--glass-strong,#fff);box-shadow:0 2px 6px rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;padding:0}
 .lib-add.on{background:var(--accent,#6366f1);color:#fff}
+/* 食物库：批量选择卡片 + 池标记 + 顶部批量操作栏 */
+.fd-card{cursor:pointer}
+.lib-ex-card{cursor:pointer}
+/* GIF 缩略图：全局固定尺寸（防加载完成撑破卡片/闪动错位），点击放大（放大镜角标提示） */
+.gif-thumb{width:48px;height:48px;flex-shrink:0;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,#f0f0f2,#e2e2e6);position:relative;cursor:zoom-in}
+.gif-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.gt-zoom{position:absolute;right:4px;bottom:4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;pointer-events:none}
+.gt-zoom svg{width:11px;height:11px;stroke:#fff}
+.f-tag{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:0 6px;border-radius:999px;margin-left:4px;vertical-align:1px}
+.f-tag.am{background:#eef2ff;color:#4338ca}
+.f-tag.pm{background:#fdf2f8;color:#be185d}
+.fd-selmark{position:absolute;left:8px;top:8px;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.fd-card.sel,.lib-ex-card.sel{outline:2px solid var(--accent);outline-offset:-2px;background:color-mix(in srgb,var(--accent) 7%,var(--glass))}
+.food-batch{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;padding:9px 12px;border-radius:12px;background:var(--glass);border:1px dashed var(--glass-border)}
+.food-batch .fb-count{margin-right:auto;font-weight:700;color:var(--text-2)}
+.food-batch button:disabled{opacity:.45;cursor:not-allowed}
+/* 移动端：右下角圆形悬浮「回到顶部」按钮（桌面隐藏） */
+.lib-to-top-fab{display:none}
+/* 食物/运动库：库头粘性 + 选中标记右上 + 回到顶部按钮 */
+.lib-head.sticky{position:sticky;top:0;z-index:30;background:linear-gradient(180deg,var(--bg1) 78%,transparent);padding-top:8px;padding-bottom:4px;margin-bottom:8px;border-radius:0 0 14px 14px}
+.lib-head.sticky .section-title{margin-top:0}
+.fd-card .fd-selmark,.lib-ex-card .fd-selmark{right:8px;left:auto;top:8px}
+.fd-card .lc-ops{display:none}
 .pool-btn{border:1px solid var(--glass-border);background:transparent;color:var(--text-2);font-size:10.5px;font-weight:700;padding:2.5px 8px;border-radius:999px;cursor:pointer;line-height:1.4;white-space:nowrap}
 .pool-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
 </style>
@@ -717,7 +793,8 @@ input[type=number]{-moz-appearance:textfield}
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap">
           <button class="btn ghost sm" id="btnPlanCustom"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> 计划参数</button>
-          <button class="btn" id="btnGenerate"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg><span id="genBtnText">一键生成计划</span></button>
+          <button class="btn" id="btnGenDiet"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg> 生成饮食计划</button>
+          <button class="btn" id="btnGenWorkout"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg> 生成运动计划</button>
         </div>
       </div>
 
@@ -736,9 +813,13 @@ input[type=number]{-moz-appearance:textfield}
         </div>
       </div>
 
-      <!-- 当日时间轴：饮食 + 训练 混合 -->
-      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M6 3v8h3v10M9 3v6M12 3c3 0 5 2 5 5v13M17 8h-3M17 3v2"/></svg>每日安排 <span class="sub" id="dayLabel"></span></div>
-      <div id="dayTimeline"></div>
+      <!-- 当日饮食计划 -->
+      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M18 8a6 6 0 0 0-12 0c0 6-2 7-2 9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2c0-2-2-3-2-9zM6 2c1 1 2 2.5 2 5M18 2c-1 1-2 2.5-2 5"/></svg>饮食计划 <span class="sub" id="dayLabelDiet"></span></div>
+      <div id="dietDayBox"></div>
+
+      <!-- 当日训练计划 -->
+      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg>训练计划 <span class="sub" id="dayLabelWorkout"></span></div>
+      <div id="workoutDayBox"></div>
     </section>
 
     <!-- ═══════════ 饮食管理 ═══════════ -->
@@ -761,28 +842,28 @@ input[type=number]{-moz-appearance:textfield}
         <div class="mini" id="planKgSummary" style="margin-bottom:14px;color:var(--text-3)"></div>
         <div class="section-title" style="margin:6px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 11h8M3 16h8M11 5v14M14 9h3M14 13h4"/></svg>早餐原料（生成食谱时早餐从这批食材搭配）</div>
         <div id="morningFoods" class="grid grid-3" style="margin-bottom:6px"></div>
-        <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方食物库点「+早」添加原料</div>
-        <div class="section-title" style="margin:16px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 11h8M3 16h8M11 5v14M14 9h3M14 13h4"/></svg>午餐原料（生成食谱时午餐从这批食材搭配）</div>
+        <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方食物库勾选后点「加入早餐」添加原料</div>
+        <div class="section-title" style="margin:16px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 11h8M3 16h8M11 5v14M14 9h3M14 13h4"/></svg>午餐晚餐原料（生成食谱时午/晚餐从这批食材搭配）</div>
         <div id="noonFoods" class="grid grid-3" style="margin-bottom:6px"></div>
-        <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方食物库点「+午」添加原料</div>
+        <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方食物库勾选后点「加入午/晚餐」添加原料</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
           <button class="btn sm" id="btnSaveDietPlan"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l5 5v13H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 3v6h8V3M7 21v-6h10v6"/></svg> 保存摄入计划</button>
         </div>
       </div>
 
-      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M7 13.5h4M7 17h7"/></svg>一周饮食清单<span class="sub">AI 按体重百分比营养目标 + 早/午餐原料生成 · 含宏量总计与微量元素分析</span></div>
-      <div class="card" style="margin-bottom:18px">
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:4px">
-          <button class="btn" id="btnGenWeekMenu"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:2px"><path d="M12 3l1.9 4.8L18.5 9.7l-4.6 1.9L12 16.5l-1.9-4.9L5.5 9.7l4.6-1.9L12 3z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z"/></svg> AI 生成一周食谱</button>
-          <span class="mini" style="color:var(--text-3)" id="weekMenuMeta"></span>
+      <div class="lib-head sticky">
+        <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 4c-2.5 0-4.5 1.8-4.5 4 0 .6.2 1.2.5 1.7C6 10.3 4.5 12 4.5 14c0 2.2 2.3 4 5.5 4.3h4c3.2-.3 5.5-2.1 5.5-4.3 0-2-1.5-3.7-3.5-4.3.3-.5.5-1.1.5-1.7 0-2.2-2-4-4.5-4z"/><path d="M12 4V2.5M9 6.5c.6 1 1.6 1.8 2.8 2.3M15 6.5c-.8 1-1.8 1.8-3 2.3"/></svg><span class="ttl-text">食物库</span></div>
+        <div class="lib-filter">
+          <input class="lf-input" id="foodKw" placeholder="搜索食物 / 分类…">
+          <button class="chip" id="foodAddedOnly">只看已添加</button>
         </div>
-        <div id="weekMenuBox"></div>
-      </div>
-
-<div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M12 4c-2.5 0-4.5 1.8-4.5 4 0 .6.2 1.2.5 1.7C6 10.3 4.5 12 4.5 14c0 2.2 2.3 4 5.5 4.3h4c3.2-.3 5.5-2.1 5.5-4.3 0-2-1.5-3.7-3.5-4.3.3-.5.5-1.1.5-1.7 0-2.2-2-4-4.5-4z"/><path d="M12 4V2.5M9 6.5c.6 1 1.6 1.8 2.8 2.3M15 6.5c-.8 1-1.8 1.8-3 2.3"/></svg>食物库<span class="sub">点 +早 / +午 加入对应餐原料 · 点击卡片可编辑</span></div>
-      <div class="lib-filter" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        <input id="foodKw" placeholder="搜索食物 / 分类…" style="flex:1;min-width:160px;padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);font-size:13px">
-        <button class="chip" id="foodAddedOnly" style="padding:8px 14px">只看已添加</button>
+        <div class="food-batch" id="foodBatchBar">
+          <span class="mini fb-count" id="foodSelCount">已选 0 项</span>
+          <button class="btn sm" id="fbAddMorning" disabled>加入早餐</button>
+          <button class="btn sm" id="fbAddNoon" disabled>加入午/晚餐</button>
+          <button class="btn danger sm" id="fbDel" disabled>删除已选</button>
+          <button class="btn ghost sm" id="fbClear">清除选择</button>
+        </div>
       </div>
       <div class="grid grid-3" id="foodGrid"></div>
     </section>
@@ -806,7 +887,7 @@ input[type=number]{-moz-appearance:textfield}
         </div>
         <div class="section-title" style="margin:6px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="13" cy="4.5" r="1.8"/><path d="M10 8.5l-3.5 1 .5 1.5L10 10l4 3 .5 6 2 .3.5-5.3L13 9l2-3.5-3-1-2 4z"/></svg>偏好运动（训练清单从中轮换）</div>
         <div id="planExercises" class="grid grid-3" style="margin-bottom:6px"></div>
-        <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方运动库点「+」添加动作（自动加入偏好运动）</div>
+        <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方运动库勾选后点「加入偏好」添加动作</div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
           <button class="btn sm" id="btnSaveWorkoutPlan"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l5 5v13H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 3v6h8V3M7 21v-6h10v6"/></svg> 保存运动计划</button>
         </div>
@@ -814,21 +895,29 @@ input[type=number]{-moz-appearance:textfield}
         <div id="deficitSummary"></div>
       </div>
 
-<div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg>运动库<span class="sub">MET 代谢当量 · 按 66kg 体重估算每 10 分钟消耗 · 含 1,324 个动作 GIF</span></div>
-      <div class="lib-filter" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-        <input id="libKw" placeholder="搜索动作名/部位/器械…" style="flex:1;min-width:160px;padding:8px 12px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);font-size:13px">
-        <select id="libBody" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);font-size:13px"><option value="">全部部位</option></select>
-        <select id="libEquip" style="padding:8px 10px;border-radius:8px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);font-size:13px"><option value="">全部器械</option></select>
-        <button class="btn ghost sm" id="libClear" style="padding:8px 14px">重置</button>
-        <button class="chip" id="libAddedOnly" style="padding:8px 14px">只看已添加</button>
+<div class="lib-head sticky">
+        <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M6.5 6.5v11M17.5 6.5v11M3 9v6M21 9v6M6.5 12h11"/></svg><span class="ttl-text">运动库</span></div>
+        <div class="lib-filter">
+          <input class="lf-input" id="libKw" placeholder="搜索动作名/别名/部位/器械…">
+          <select class="lf-select" id="libBody"><option value="">全部部位</option></select>
+          <select class="lf-select" id="libEquip"><option value="">全部器械</option></select>
+          <button class="btn ghost sm" id="libClear">重置</button>
+          <button class="chip" id="libAddedOnly">只看已添加</button>
+        </div>
+        <div class="food-batch" id="libBatchBar">
+          <span class="mini fb-count" id="libSelCount">已选 0 项</span>
+          <button class="btn sm" id="lbAddPref" disabled>加入偏好</button>
+          <button class="btn ghost sm" id="lbRmPref" disabled>移出偏好</button>
+          <button class="btn ghost sm" id="lbClearSel">清除选择</button>
+        </div>
       </div>
-      <div id="exGrid" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px"></div>
+      <div id="exGrid" class="grid grid-3"></div>
     </section>
 
     <!-- 动作库详情弹层 -->
-    <div id="libModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px" onclick="if(event.target===this)closeLibModal()">
-      <div style="background:var(--glass-strong, #fff);border:1px solid var(--glass-border);border-radius:16px;max-width:640px;width:100%;max-height:86vh;overflow-y:auto;padding:20px 24px;position:relative;color:var(--text);box-shadow:var(--shadow-md, 0 14px 36px rgba(0,0,0,.2))">
-        <button onclick="closeLibModal()" style="position:absolute;right:12px;top:10px;border:none;background:none;font-size:22px;cursor:pointer;color:var(--text-3, #999)">×</button>
+    <div id="libModal" class="lib-modal-mask" onclick="if(event.target===this)closeLibModal()">
+      <div class="lib-modal-box">
+        <button class="lib-modal-close" onclick="closeLibModal()" aria-label="关闭">×</button>
         <div id="libModalBody"></div>
       </div>
     </div>
@@ -838,7 +927,6 @@ input[type=number]{-moz-appearance:textfield}
       <div class="page-head">
         <div>
           <h1>设置</h1>
-          <p>外观主题、AI 助手与数据管理</p>
         </div>
       </div>
 
@@ -862,7 +950,7 @@ input[type=number]{-moz-appearance:textfield}
           <small style="color:var(--text-3);font-size:11.5px">Key 以 XOR+Base64 混淆后加密存储（不明文落盘），亦可通过服务端 keys.json 提供；调用时临时解密，失败自动降级本地引擎。</small>
         </div>
         <div class="field-row">
-          <div class="field"><label>AI 模型</label><select id="aiModel"><option value="deepseek-v4-flash">deepseek-v4-flash（推荐 · 推理型，结果准但生成较慢）</option><option value="deepseek-chat">deepseek-chat（通用 · 更快）</option><option value="deepseek-reasoner">deepseek-reasoner（深度思考 · 最慢）</option></select><p class="mini" style="margin-top:5px">生成 30-90 秒属正常：AI 会结合你的记录与计划深度推理，请耐心等待进度提示</p></div>
+          <div class="field"><label>AI 模型</label><select id="aiModel"><option value="deepseek-v4-flash">deepseek-v4-flash（推荐 · 推理型，结果准但生成较慢）</option><option value="deepseek-chat">deepseek-chat（通用 · 更快）</option><option value="deepseek-reasoner">deepseek-reasoner（深度思考 · 最慢）</option></select></div>
           <div class="field"><label>接口地址</label><input type="text" id="aiBase" value="https://api.deepseek.com"></div>
         </div>
         <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
@@ -894,6 +982,19 @@ input[type=number]{-moz-appearance:textfield}
         </div>
       </div>
 
+      <!-- 用户管理（仅管理员可见；服务端亦校验 role=admin） -->
+      <div id="userMgmtWrap" style="display:none">
+        <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>用户管理<span class="sub">jlb 管理员专属 · 新增默认密码 442299 · 删除将清除该账号全部数据</span></div>
+        <div class="card" style="margin-bottom:18px">
+          <div class="setting-row">
+            <input id="umNewName" placeholder="新用户名（小写字母/数字/-/_，≤20 位）" style="flex:1;min-width:150px;padding:9px 12px;border-radius:9px;border:1px solid var(--glass-border);background:var(--glass-strong);color:var(--text);font-size:13px">
+            <button class="btn sm" id="umAdd">新增用户</button>
+          </div>
+          <div class="divider"></div>
+          <div id="umList"><div class="mini" style="color:var(--text-3)">—</div></div>
+        </div>
+      </div>
+
       <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>关于</div>
       <div class="card">
         <p style="font-size:13.5px;color:var(--text-2);line-height:1.8">
@@ -918,6 +1019,10 @@ input[type=number]{-moz-appearance:textfield}
 <!-- 模态容器 -->
 <div id="modalRoot"></div>
 <div class="toast-wrap" id="toastWrap"></div>
+
+<!-- 移动端：回到顶部圆形悬浮按钮（桌面隐藏，移动端按当前页面显示对应库） -->
+<button class="lib-to-top-fab" id="fbToTopFab" aria-label="回到顶部">↑</button>
+<button class="lib-to-top-fab" id="libToTopFab" aria-label="回到顶部">↑</button>
 
 <script>
 /*__APP_JS__*/
@@ -1126,6 +1231,19 @@ const LIB_ICONS = {
   yoga:    { icon: 'ex-yoga',    color: '#C4B5FD' },
   daily:   { icon: 'ex-walk',    color: '#94A3B8' }
 };
+/* 部位/类型剪影（运动管理卡片左侧 SVG）：力量按部位，有氧/瑜伽/日常按类型；fallback 通用力量 */
+const PART_ICON_SVG = {
+  chest:    '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="13" width="20" height="2.2" rx="1"/><rect x="3" y="9" width="3" height="3" rx=".5"/><rect x="18" y="9" width="3" height="3" rx=".5"/><path d="M9 12v3M15 12v3"/></svg>',
+  back:     '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M4 9v8M20 9v8M9 9v8M15 9v8M8 5v15M16 5v15"/></svg>',
+  shoulder: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="2.2"/><path d="M5 18c2-3 5-5 7-5s5 2 7 5M8 13l4-3 4 3M9 18v4M15 18v4"/></svg>',
+  arm:      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="9" r="2.5"/><path d="M7.5 9h13M9 5v8M19 5v8M12 5v8M11 13c0 4 2 5 5 5"/></svg>',
+  leg:      '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M9 7h6M8 10h8M7 13h10M10 16l-2 5M14 16l2 5M9 10l-1 8M15 10l1 8"/></svg>',
+  core:     '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="6" r="1.8"/><circle cx="17" cy="6" r="1.8"/><path d="M4 10h16M5 13h14M7 17c0 3 2 4 5 4s5-1 5-4"/></svg>',
+  strength: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9v6M6 7v10M18 7v10M21 9v6M6 12h12"/></svg>',
+  cardio:   '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="5" r="2"/><path d="M11 8l-5 7h4l-2 6M8 14l-2 4M18 9l3 1-1 5"/></svg>',
+  yoga:     '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="6" r="2"/><path d="M8 10c-3 0-5 3-5 6 5 0 6 3 9 3s4-3 9-3c0-3-2-6-5-6M9 19l3-2 3 2"/></svg>',
+  daily:    '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="5" r="2"/><path d="M11 8l-4 6h4l-2 4M8 14l-2 6M17 9l3 1-1 5"/></svg>'
+};
 /* 迷你折线图：横轴为量（份量 g / 时长 min），纵轴为营养 / 消耗 */
 function miniChartSVG(series, n, w = 132, h = 44) {
   const all = series.flatMap(s => s.v);
@@ -1307,33 +1425,26 @@ function defaultState() {
 }
 
 /* ════════════════════════════════════════════════════════════
-   用户系统：内置账号 · 密码哈希 · 会话 · 数据隔离
+   用户系统：服务端 users 表权威 · token 会话 · 数据隔离
    ════════════════════════════════════════════════════════════ */
-const BUILTIN_USERS = [
-  { username: 'jlb', salt: 'jlb-salt-0810', passHash: '65589949' },
-  { username: 'whx', salt: 'whx-salt-0810', passHash: '79e368ce' },
-  { username: 'hzk', salt: 'hzk-salt-0810', passHash: '3e90a205' },
-  { username: 'wyb', salt: 'wyb-salt-0810', passHash: '9397edc9' }
-];
 let currentUser = null;
+let currentRole = 'user';
 const SESSION_KEY = 'fitness-console-session';
 
-/* 密码哈希（djb2 变体 + 盐，与预计算一致） */
-function hashPw(pw, salt) {
-  let h = 5381;
-  const s = salt + pw + salt;
-  for (let i = 0; i < s.length; i++) { h = ((h << 5) + h) ^ s.charCodeAt(i); h = h >>> 0; }
-  for (let r = 0; r < 200; r++) { h = ((h << 7) + h * 31 + r * 13) ^ (h >>> 11); h = h >>> 0; }
-  return h.toString(16);
-}
-function verifyUser(u, pw) {
-  const user = BUILTIN_USERS.find(x => x.username === u);
-  if (!user) return false;
-  return hashPw(pw, user.salt) === user.passHash;
-}
-function getSession() { try { return localStorage.getItem(SESSION_KEY); } catch (e) { return null; } }
-function setSession(u) { try { localStorage.setItem(SESSION_KEY, u); } catch (e) { } }
+function getSession() { try { return JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'); } catch (e) { return null; } }
+function setSession(o) { try { localStorage.setItem(SESSION_KEY, JSON.stringify(o)); } catch (e) { } }
 function clearSession() { try { localStorage.removeItem(SESSION_KEY); } catch (e) { } }
+/* 鉴权头：所有 /api 请求携带会话 token（服务端据此识别身份并拒绝越权） */
+function authHeaders() { const s = getSession(); return s && s.token ? { 'x-token': s.token } : {}; }
+function isAdmin() { const s = getSession(); return !!(s && s.role === 'admin'); }
+/* 会话失效：清会话回登录页（防重复触发） */
+function handleSessionExpired() {
+  if (!getSession() || !currentUser) return;
+  clearSession(); currentUser = null; currentRole = 'user';
+  state = defaultState();
+  showLogin();
+  toast('会话已过期，请重新登录', 'err');
+}
 
 /* 数据隔离：每用户独立 localStorage key + 服务端独立文件 */
 const LS_KEY = () => `fitness-console-data-${currentUser || 'guest'}`;
@@ -1449,7 +1560,8 @@ function saveState() {
 async function syncToServer() {
   if (!currentUser) return true;
   try {
-    const r = await fetch(`/api/data/${currentUser}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(state) });
+    const r = await fetch(`/api/data/${currentUser}`, { method: 'PUT', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(state) });
+    if (r.status === 401) handleSessionExpired();
     return r.ok;
   } catch (e) { return false; }
 }
@@ -1457,7 +1569,8 @@ async function syncToServer() {
 async function tryLoadFromServer() {
   if (!currentUser) return false;
   try {
-    const r = await fetch(`/api/data/${currentUser}`, { method: 'GET', signal: AbortSignal.timeout(1200) });
+    const r = await fetch(`/api/data/${currentUser}`, { method: 'GET', headers: authHeaders(), signal: AbortSignal.timeout(1200) });
+    if (r.status === 401) { handleSessionExpired(); return false; }
     if (!r.ok) return false;
     const j = await r.json();
     // 服务端连通即标记 serverMode（即使数据为空，后续 saveState 也能写入）
@@ -1494,7 +1607,8 @@ async function resolveAIKey() {
   const s = state.settings || {};
   try {
     if (currentUser && serverMode) {
-      const r = await fetch('/api/ai-key', { headers: { 'x-user': currentUser }, signal: AbortSignal.timeout(1500) });
+      const r = await fetch('/api/ai-key', { headers: authHeaders(), signal: AbortSignal.timeout(1500) });
+      if (r.status === 401) { handleSessionExpired(); return null; }
       if (r.ok) {
         const j = await r.json();
         if (j.ok && j.key) return deobfuscateKey(j.key);
@@ -1552,7 +1666,7 @@ function renderLibrary() {
     if (bp && x.bodyPart !== bp) return false;
     if (eq && x.equipment !== eq) return false;
     if (kw) {
-      const hay = `${x.nameZh || ''} ${x.name || ''} ${x.bodyPart || ''} ${x.equipment || ''} ${x.target || ''}`.toLowerCase();
+      const hay = `${x.nameZh || ''} ${x.name || ''} ${x.alias || ''} ${x.bodyPart || ''} ${x.equipment || ''} ${x.target || ''}`.toLowerCase();
       if (!hay.includes(kw)) return false;
     }
     return true;
@@ -1568,25 +1682,33 @@ function renderLibrary() {
   const pageSize = 24;
   LIB_PAGE = Math.min(LIB_PAGE, Math.ceil(LIB_FILTERED.length / pageSize));
   const visible = LIB_FILTERED.slice(0, LIB_PAGE * pageSize);
-  grid.innerHTML = visible.map(x => `
-    <div class="lib-card gif-card" data-src="${esc(x.srcId)}" style="cursor:pointer" onclick="showLibDetail('${esc(x.srcId)}')">
-      <div class="gif-wrap" style="position:relative;padding-top:100%;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,#f0f0f2,#e2e2e6)">
-        <img src="${MEDIA_BASE}/videos/${esc(x.srcId)}-${esc(x.mediaId || '')}.gif" alt="${esc(x.nameZh)}" decoding="async"
-          style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"
-          onerror="libImgFallback(this, '${esc(x.nameZh.slice(0, 1))}')">
-        <span style="position:absolute;left:4px;top:4px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;padding:1px 6px;border-radius:999px">${esc(x.bodyPart || '')}</span>
-        <button class="lib-add ${libAdded(x.srcId) ? 'on' : ''}" onclick="event.stopPropagation();toggleLibExercise('${esc(x.srcId)}')" title="${libAdded(x.srcId) ? '已加入运动库 · 点击移除' : '加入运动库与偏好运动'}">${libAdded(x.srcId) ? '✓' : '+'}</button>
+  grid.innerHTML = visible.map(x => {
+    const sel = libSel.has(x.srcId);
+    const part = x.bodyPart || '';
+    const pref = libAdded(x.srcId);
+    return `
+    <div class="lib-card lib-ex-card${sel ? ' sel' : ''}" data-src="${esc(x.srcId)}">
+      ${sel ? '<span class="fd-selmark">✓</span>' : ''}
+      <div class="lc-row">
+        <div class="gif-thumb" data-detail="${esc(x.srcId)}" title="点击查看大图"><img src="${MEDIA_BASE}/videos/${esc(x.srcId)}-${esc(x.mediaId || '')}.gif" alt="${esc(x.nameZh)}" loading="lazy"><span class="gt-zoom"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span></div>
+        <div class="lc-info">
+          <div class="lc-name">${esc(x.nameZh)}${pref ? '<span class="badge" style="background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);margin-left:4px;font-size:10px;padding:0 6px;border-radius:999px">偏好</span>' : ''}${part ? `<span class="badge" style="background:#eef2ff;color:#4338ca;margin-left:4px;font-size:11px;padding:1px 8px;border-radius:999px">${esc(part)}</span>` : ''}</div>
+          <div class="lc-sub"><span class="badge" style="background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-size:11px;padding:1px 8px;border-radius:999px;margin-right:4px">力量塑形</span>${esc(x.equipment || '无器械')} · MET ${(x.met || 4.5).toFixed(1)}</div>
+        </div>
       </div>
-      <div style="padding:5px 3px 1px;font-size:11.5px;font-weight:600;color:var(--text);line-height:1.25">${esc(x.nameZh)}</div>
-      <div style="padding:0 3px 5px;font-size:10.5px;color:var(--text-3, #999)">${esc(x.equipment || '')}${x.target ? ' · ' + esc(x.target) : ''}</div>
-    </div>`).join('')
-    + (LIB_FILTERED.length > visible.length
-      ? `<div id="libSentinel" style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 0;color:var(--text-3,#999);font-size:12px">
-           <span class="lib-spinner" style="width:16px;height:16px;border:2px solid var(--glass-border,#e5e7eb);border-top-color:var(--accent,#6366f1);border-radius:50%;display:inline-block;animation:libSpin .7s linear infinite"></span>
-           加载中…
-         </div>`
+    </div>`;
+  }).join('') + (LIB_FILTERED.length > visible.length
+      ? `<div id="libSentinel" style="grid-column:1/-1;text-align:center;padding:14px 0;color:var(--text-3,#999);font-size:12px"><span class="lib-spinner" style="width:14px;height:14px;border:2px solid var(--glass-border,#e5e7eb);border-top-color:var(--accent,#6366f1);border-radius:50%;display:inline-block;animation:libSpin .7s linear infinite"></span> 加载中…</div>`
       : `<div id="libSentinel" style="grid-column:1/-1;text-align:center;padding:14px 0;color:var(--text-3,#999);font-size:12px">— 没有更多了 —</div>`);
   observeLibSentinel();
+  updateLibBatch();
+  // 事件委托（同食物库勾选模式）：GIF 缩略图=查看详情；卡片本体=勾选/取消
+  grid.onclick = e => {
+    const dt = e.target.closest('[data-detail]');
+    if (dt) { showLibDetail(dt.dataset.detail); return; }
+    const card = e.target.closest('.lib-ex-card');
+    if (card) toggleLibSel(card.dataset.src);
+  };
 }
 async function showLibDetail(srcId) {
   let x = LIB_ALL.find(i => i.srcId === srcId);
@@ -1599,8 +1721,8 @@ async function showLibDetail(srcId) {
   const steps = Array.isArray(x.steps) && x.steps.length ? x.steps.map((s, i) => `${i + 1}. ${esc(s)}`).join('<br>') : (x.description ? esc(x.description).replace(/\n/g, '<br>') : '暂无说明');
   document.getElementById('libModalBody').innerHTML = `
     <div style="display:flex;gap:18px;flex-wrap:wrap">
-      <div style="width:220px;flex-shrink:0">
-        <img src="${MEDIA_BASE}/videos/${esc(x.srcId)}-${esc(x.mediaId || '')}.gif" style="width:100%;border-radius:12px" alt="${esc(x.nameZh)}">
+      <div class="ld-gif">
+        <img src="${MEDIA_BASE}/videos/${esc(x.srcId)}-${esc(x.mediaId || '')}.gif" style="width:100%;border-radius:12px;display:block" loading="lazy" alt="${esc(x.nameZh)}">
       </div>
       <div style="flex:1;min-width:240px">
         <div style="font-size:12px;color:var(--text-3, #999);margin-bottom:4px">动作 #${esc(x.srcId)}</div>
@@ -1836,6 +1958,124 @@ function drawBarChart(canvas, data, opts = {}) {
 }
 
 /* ---------- 食物库管理 ---------- */
+/* 批量选择：点卡片勾选，顶部统一操作（加入早餐/午餐、删除） */
+const foodSel = new Set();
+function toggleFoodSel(id) {
+  const had = foodSel.has(id);
+  if (had) foodSel.delete(id); else foodSel.add(id);
+  // 局部更新：只改该卡 sel 态与 ✓ 标记，不重渲整表（避免闪烁）
+  const card = document.querySelector(`#foodGrid .lib-card[data-food="${CSS.escape(id)}"]`);
+  if (card) {
+    const nowSel = foodSel.has(id);
+    card.classList.toggle('sel', nowSel);
+    let mark = card.querySelector('.fd-selmark');
+    if (nowSel && !mark) {
+      mark = document.createElement('span');
+      mark.className = 'fd-selmark';
+      mark.textContent = '✓';
+      card.appendChild(mark);
+    } else if (!nowSel && mark) {
+      mark.remove();
+    }
+  }
+  updateFoodBatch();
+}
+function clearFoodSel() {
+  if (!foodSel.size) return;
+  foodSel.clear();
+  document.querySelectorAll('#foodGrid .lib-card.sel').forEach(c => {
+    c.classList.remove('sel');
+    const m = c.querySelector('.fd-selmark'); if (m) m.remove();
+  });
+  updateFoodBatch();
+}
+function updateFoodBatch() {
+  const c = document.getElementById('foodSelCount');
+  if (c) c.textContent = `已选 ${foodSel.size} 项`;
+  ['fbAddMorning', 'fbAddNoon', 'fbDel'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.disabled = !foodSel.size;
+  });
+}
+function batchAddPool(pool) {
+  if (!foodSel.size) return;
+  const key = pool === 'morning' ? 'morningFoodIds' : 'noonFoodIds';
+  const arr = state.dietPlan[key];
+  let n = 0;
+  foodSel.forEach(id => { if (!arr.includes(id)) { arr.push(id); n++; } });
+  const label = pool === 'morning' ? '早餐' : '午餐';
+  if (!n) { toast('所选食物已在' + label + '原料中', 'warn'); return; }
+  saveState(); renderPlanFoods();
+  toast(`已将 ${n} 项加入${label}原料`, 'ok');
+  foodSel.clear(); renderFoods(); updateFoodBatch();
+}
+async function batchDelFoods() {
+  if (!foodSel.size) return;
+  const ok = await confirmDialog({ title: '删除食物', message: `确定删除选中的 ${foodSel.size} 项食物？删除后不可恢复。`, okText: '删除' });
+  if (!ok) return;
+  const ids = new Set(foodSel);
+  state.foods = state.foods.filter(f => !ids.has(f.id));
+  ['morningFoodIds', 'noonFoodIds', 'foodIds'].forEach(k => {
+    if (Array.isArray(state.dietPlan[k])) state.dietPlan[k] = state.dietPlan[k].filter(x => !ids.has(x));
+  });
+  saveState(); foodSel.clear(); renderFoods(); renderPlanFoods(); updateFoodBatch();
+  const synced = await syncToServer();
+  toast(synced ? '已删除' : '已删除，但云端同步失败', synced ? 'ok' : 'err');
+}
+/* 运动库批量勾选：与食物库同款交互（点卡勾选 → 顶部批量加入/移出偏好运动） */
+const libSel = new Set();
+function toggleLibSel(srcId) {
+  const had = libSel.has(srcId);
+  if (had) libSel.delete(srcId); else libSel.add(srcId);
+  const card = document.querySelector(`#exGrid .lib-ex-card[data-src="${CSS.escape(srcId)}"]`);
+  if (card) {
+    const nowSel = libSel.has(srcId);
+    card.classList.toggle('sel', nowSel);
+    let mark = card.querySelector('.fd-selmark');
+    if (nowSel && !mark) { mark = document.createElement('span'); mark.className = 'fd-selmark'; mark.textContent = '✓'; card.appendChild(mark); }
+    else if (!nowSel && mark) mark.remove();
+  }
+  updateLibBatch();
+}
+function updateLibBatch() {
+  const c = document.getElementById('libSelCount');
+  if (c) c.textContent = `已选 ${libSel.size} 项`;
+  ['lbAddPref', 'lbRmPref'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = !libSel.size; });
+}
+function clearLibSel() {
+  if (!libSel.size) return;
+  libSel.clear();
+  document.querySelectorAll('#exGrid .lib-ex-card.sel').forEach(c => { c.classList.remove('sel'); const m = c.querySelector('.fd-selmark'); if (m) m.remove(); });
+  updateLibBatch();
+}
+function batchAddPref() {
+  if (!libSel.size) return;
+  let n = 0;
+  libSel.forEach(srcId => {
+    if (state.exercises.some(e => e.libId === srcId)) return; // 已在偏好
+    const x = LIB_ALL.find(i => i.srcId === srcId); if (!x) return;
+    const part = libPart(x.bodyPart);
+    state.exercises.push({ id: 'lib-' + x.srcId, name: x.nameZh || x.name, cat: 'strength', met: 4.5, icon: 'dumbbell', color: (BODY_PARTS[part] || {}).color || '#8b5cf6', part, gear: libGear(x.equipment), libId: x.srcId });
+    state.workoutPlan.exerciseIds.push('lib-' + x.srcId);
+    n++;
+  });
+  if (!n) { toast('所选动作均已加入偏好运动', 'warn'); return; }
+  toast(`已加入 ${n} 个偏好动作`, 'ok');
+  clearLibSel(); saveState(); renderPlanExercises(); renderLibrary();
+}
+function batchRmPref() {
+  if (!libSel.size) return;
+  let n = 0;
+  libSel.forEach(srcId => {
+    const id = 'lib-' + srcId;
+    const before = state.exercises.length;
+    state.exercises = state.exercises.filter(e => e.id !== id && e.libId !== srcId);
+    state.workoutPlan.exerciseIds = state.workoutPlan.exerciseIds.filter(v => v !== id);
+    if (state.exercises.length !== before) n++;
+  });
+  toast(n ? `已移出 ${n} 个偏好动作` : '所选动作不在偏好运动中', n ? 'ok' : 'warn');
+  clearLibSel(); saveState(); renderPlanExercises(); renderLibrary();
+}
 function foodCardHTML(f) {
   const g = LIB_GROUPS.find(x => x.cats.includes(f.cat));
   const li = g ? (LIB_ICONS[g.key] || { icon: 'ui-meal', color: '#94A3B8' }) : { icon: 'ui-meal', color: '#94A3B8' };
@@ -1845,14 +2085,16 @@ function foodCardHTML(f) {
     { v: [f.fat, f.fat * 2, f.fat * 3], color: '#EC4899' }
   ], 3);
   const mIn = (state.dietPlan.morningFoodIds || []).includes(f.id), nIn = (state.dietPlan.noonFoodIds || []).includes(f.id);
-  return `<div class="lib-card" data-food="${f.id}">
+  const sel = foodSel.has(f.id);
+  const tags = (mIn ? '<span class="f-tag am">早</span>' : '') + (nIn ? '<span class="f-tag pm">午</span>' : '');
+  return `<div class="lib-card fd-card${sel ? ' sel' : ''}" data-food="${f.id}">
+    ${sel ? '<span class="fd-selmark">✓</span>' : ''}
     <div class="lc-row">
       <div class="ico-badge sm" style="background:${badgeColor(li.color)}">${iconSvg(li.icon, li.color, 18)}</div>
       <div class="lc-info">
-        <div class="lc-name">${esc(f.name)}</div>
+        <div class="lc-name">${esc(f.name)}${tags}</div>
         <div class="lc-sub">${f.kcal} kcal/100g · ${SUB_LABEL[f.sub] || CAT_META[f.cat]?.label || f.cat}</div>
       </div>
-      <div class="lc-ops"><button class="pool-btn ${mIn ? 'on' : ''}" data-pool="morning" title="${mIn ? '移出早餐原料' : '加入早餐原料'}">${mIn ? '✓早' : '+早'}</button><button class="pool-btn ${nIn ? 'on' : ''}" data-pool="noon" title="${nIn ? '移出午餐原料' : '加入午餐原料'}">${nIn ? '✓午' : '+午'}</button><button class="icon-btn" data-act="edit" title="编辑">${iconSvg('ui-edit', 'currentColor', 15)}</button><button class="icon-btn del" data-act="del" title="删除">${iconSvg('ui-trash', 'currentColor', 15)}</button></div>
     </div>
     <div class="lc-foot"><span class="n-chip" style="color:#3B82F6">蛋白质 ${f.protein}g</span><span class="n-chip" style="color:#F59E0B">C ${f.carb}g</span><span class="n-chip" style="color:#EC4899">F ${f.fat}g</span><span class="n-chip" style="color:var(--text-3)">纤维 ${f.fiber}g</span></div>
   </div>`;
@@ -1865,7 +2107,7 @@ function renderFoods() {
   const list = state.foods.filter(f =>
     (!kw || f.name.includes(kw) || (CAT_META[f.cat]?.label || '').includes(kw) || (SUB_LABEL[f.sub] || '').includes(kw)) &&
     (!addedOnly || isAdded(f)));
-  if (!list.length) { grid.innerHTML = `<div class="empty-hint" style="grid-column:1/-1"><b>${addedOnly ? '暂无已添加的食物' : '暂无食物'}</b>${addedOnly ? '在食物库卡片上点「+早」/「+午」加入原料' : '点击右上角「新增食物」添加'}</div>`; return; }
+  if (!list.length) { grid.innerHTML = `<div class="empty-hint" style="grid-column:1/-1"><b>${addedOnly ? '暂无已添加的食物' : '暂无食物'}</b>${addedOnly ? '勾选卡片后点顶部「加入早餐/午餐」即可' : '点右上角「新增食物」可添加自定义食物'}</div>`; updateFoodBatch(); return; }
   // 大组 → 子类两级分组，组内按每百克热量倒序
   const rows = LIB_GROUPS.map(g => {
     const blocks = g.subs.map(([sk, sl]) => {
@@ -1889,15 +2131,9 @@ function renderFoods() {
     ${unknown.map(foodCardHTML).join('')}` : '';
   grid.innerHTML = rows + unknownRows;
   $$('#foodGrid .lib-card').forEach(card => {
-    card.addEventListener('click', e => {
-      const pool = e.target.closest('button')?.dataset?.pool;
-      if (pool) { toggleFoodPool(card.dataset.food, pool); return; }
-      const act = e.target.closest('button')?.dataset?.act;
-      if (act === 'edit') openFoodModal(card.dataset.food);
-      else if (act === 'del') deleteFood(card.dataset.food);
-      else openFoodModal(card.dataset.food);
-    });
+    card.addEventListener('click', () => toggleFoodSel(card.dataset.food));
   });
+  updateFoodBatch();
 }
 /* 食物卡 +早 / +午：加入或移出对应餐原料池（就地更新，不整页重载） */
 function toggleFoodPool(id, pool) {
@@ -1930,24 +2166,7 @@ function libGear(eq) {
   return 'none';
 }
 function libAdded(srcId) { return state.exercises.some(e => e.libId === srcId); }
-/* 动作卡 +：加入运动库并自动加入偏好运动；再点移除 */
-function toggleLibExercise(srcId) {
-  const x = LIB_ALL.find(i => i.srcId === srcId); if (!x) return;
-  const idx = state.exercises.findIndex(e => e.libId === srcId);
-  if (idx >= 0) {
-    const id = state.exercises[idx].id;
-    state.exercises.splice(idx, 1);
-    state.workoutPlan.exerciseIds = state.workoutPlan.exerciseIds.filter(v => v !== id);
-    toast('已从运动库移除', 'ok');
-  } else {
-    const part = libPart(x.bodyPart);
-    const e = { id: 'lib-' + x.srcId, name: x.nameZh || x.name, cat: 'strength', met: 4.5, icon: 'dumbbell', color: (BODY_PARTS[part] || {}).color || '#8b5cf6', part, gear: libGear(x.equipment), libId: x.srcId };
-    state.exercises.push(e);
-    state.workoutPlan.exerciseIds.push(e.id);
-    toast('已加入运动库与偏好运动', 'ok');
-  }
-  saveState(); renderLibrary(); renderPlanExercises();
-}
+/* 动作卡加入/移除已迁移到批量勾选条（batchAddPref / batchRmPref）；部位/器械映射见上方 libPart/libGear */
 function openFoodModal(id = null) {
   const f = id ? foodById(id) : { name: '', sub: 'meat', kcal: 100, protein: 10, fat: 5, carb: 10, fiber: 1, icon: 'protein', color: '#6366f1' };
   const subOpts = LIB_GROUPS.flatMap(g => g.subs.map(([sk, sl]) => `<option value="${sk}">${g.label} · ${sl}</option>`)).join('');
@@ -2107,7 +2326,7 @@ function renderPlanFoods() {
 }
 function renderFoodPool(boxId, ids) {
   const box = document.getElementById(boxId); if (!box) return;
-  if (!ids.length) { box.innerHTML = `<div class="empty-hint" style="grid-column:1/-1;padding:14px"><b>尚未选择原料</b>去下方食物库点「${boxId === 'morningFoods' ? '+早' : '+午'}」添加</div>`; return; }
+  if (!ids.length) { box.innerHTML = `<div class="empty-hint" style="grid-column:1/-1;padding:14px"><b>尚未选择原料</b>去下方食物库勾选后点「${boxId === 'morningFoods' ? '加入早餐' : '加入午/晚餐'}」</div>`; return; }
   const items = ids.map(id => foodById(id)).filter(Boolean);
   const card = f => { const g = LIB_GROUPS.find(x => x.cats.includes(f.cat)); const li = g ? (LIB_ICONS[g.key] || { icon: 'ui-meal', color: '#94A3B8' }) : { icon: 'ui-meal', color: '#94A3B8' }; return `
     <div class="lib-card">
@@ -2135,14 +2354,23 @@ function renderPlanExercises() {
   const box = $('#planExercises');
   if (!ids.length) { box.innerHTML = `<div class="empty-hint" style="grid-column:1/-1;padding:16px"><b>尚未选择运动</b>去下方运动库点「+」添加动作</div>`; return; }
   const items = ids.map(id => exById(id)).filter(Boolean);
-  const card = e0 => { const li = LIB_ICONS[e0.cat] || { icon: 'ex-run', color: '#94A3B8' }; return `
+const card = e0 => {
+    const partKey = e0.cat === 'strength' && e0.part ? e0.part : (e0.cat in PART_ICON_SVG ? e0.cat : 'strength');
+    const svg = PART_ICON_SVG[partKey] || PART_ICON_SVG.strength;
+    const color = (e0.part && BODY_PARTS[e0.part]?.color) || CAT_META[e0.cat]?.color || '#94A3B8';
+    const lib = e0.libId ? LIB_ALL.find(x => x.srcId === e0.libId) : null;
+    const thumb = lib
+      ? '<div class="gif-thumb"><img src="' + MEDIA_BASE + '/videos/' + esc(lib.srcId) + '-' + esc(lib.mediaId || '') + '.gif" alt="' + esc(e0.name) + '" loading="lazy"></div>'
+      : '<div class="ico-badge sm" style="background:' + badgeColor(color) + '">' + svg + '</div>';
+    return `
     <div class="lib-card">
       <div class="lc-row">
-        <div class="ico-badge sm" style="background:${badgeColor(li.color)}">${iconSvg(li.icon, li.color, 16)}</div>
+        ${thumb}
         <div class="lc-info"><div class="lc-name">${esc(e0.name)}</div><div class="lc-sub"><span class="badge" style="background:${badgeColor(CAT_META[e0.cat]?.color)};color:${CAT_META[e0.cat]?.color}">${CAT_META[e0.cat]?.label || e0.cat}</span>${e0.cat === 'strength' && e0.part ? `<span class="badge" style="background:${badgeColor(BODY_PARTS[e0.part]?.color)};color:${BODY_PARTS[e0.part]?.color}">${BODY_PARTS[e0.part]?.label || ''}部</span>` : ''}<span class="mini" style="font-weight:600">${e0.cat === 'strength' && e0.gear ? '· ' + (GEAR_LABEL[e0.gear] || e0.gear) : ''} · MET ${e0.met}</span></div></div>
         <button class="icon-btn del" data-remove="${e0.id}">${iconSvg('ui-x', 'currentColor', 14)}</button>
       </div>
-    </div>`; };
+    </div>`;
+  };
   // 大类：有氧/无氧/拉伸/日常；无氧（力量）再按部位分组
   const catOrder = ['cardio', 'strength', 'yoga', 'daily'];
   const html = catOrder.map(cat => {
@@ -2265,7 +2493,7 @@ function calibrateDiet(diet, dayTarget) {
 }
 
 /* 构建一整月计划（30 天，从今天开始） */
-function buildLocalPlan() {
+function buildLocalPlan(only) { // only: undefined=全部 | 'diet' | 'workout'
   const dp = state.dietPlan, wp = state.workoutPlan;
   const p = state.profile;
   const dayTarget = {
@@ -2274,20 +2502,22 @@ function buildLocalPlan() {
   };
   const plan = { generatedAt: new Date().toISOString(), mode: 'local', days: {} };
   const foodIds = dp.foodIds.length ? dp.foodIds : state.foods.filter(f => ['carb', 'protein', 'veg'].includes(f.cat)).map(f => f.id);
-  const exIds = wp.exerciseIds.length ? wp.exerciseIds : state.exercises.slice(0, 5).map(e => e.id);
 
   for (let d = 0; d < 30; d++) {
     const date = addDays(todayStr(), d);
     // 按周计划决定当日训练类型（周几 → 有氧/力量/休息；详细模式逐日设定，简单模式由天数/偏好推导）
     const cyc = cycleInfo(wp.splitType, d);
     const dayType = cyc.type;
-    const diet = [];
-    MEAL_DEF.forEach(m => {
-      const pref = (dp.meals || {})[m.key];
-      diet.push(...buildMeal(foodIds, m.ratio, dayTarget, pref).map(it => ({ ...it, meal: m.key, time: m.time, mealLabel: m.label })));
-    });
+    const diet = (only === 'workout') ? [] : (() => {
+      const arr = [];
+      MEAL_DEF.forEach(m => {
+        const pref = (dp.meals || {})[m.key];
+        arr.push(...buildMeal(foodIds, m.ratio, dayTarget, pref).map(it => ({ ...it, meal: m.key, time: m.time, mealLabel: m.label })));
+      });
+      return arr;
+    })();
     // 训练：按周期当日类型构造（力量/有氧；休息日为空）
-    const workout = dayType !== 'rest' ? buildDayWorkout(dayType, cyc.parts || []) : [];
+    const workout = (only === 'diet') ? [] : (dayType !== 'rest' ? buildDayWorkout(dayType, cyc.parts || []) : []);
     plan.days[date] = { diet, workout };
   }
   return plan;
@@ -2350,7 +2580,7 @@ async function aiFetch(body, label = 'AI') {
     return parsed;
   } finally { clearTimeout(timer); }
 }
-async function aiGeneratePlan() {
+async function aiGeneratePlan(mode) {
   const s = state.settings, p = state.profile, dp = state.dietPlan, wp = state.workoutPlan;
   const foodLib = state.foods.map(f => ({ name: f.name, cat: f.cat, kcal: f.kcal, protein: f.protein, fat: f.fat, carb: f.carb, fiber: f.fiber }));
   const exLib = state.exercises.map(e => ({ name: e.name, cat: e.cat, met: e.met }));
@@ -2375,89 +2605,95 @@ async function aiGeneratePlan() {
 4. 训练安排严格按周期循环（从第 1 天起）：split_type=split5 时 7 天一循环——第1-5天力量日依次练 胸/背/肩/腿/手臂（只选对应部位的动作），第6天有氧，第7天休息（workout 为空数组）；split_type=split3 时 4 天一循环——第1-3天力量日依次练 胸+二头/背+三头/肩+腿，第4天休息；动作以自重和常见器械为主
 5. 每餐热量配比 早30% 午40% 晚30%；如 meal_preferences 提供某餐宏量偏好（proteinW/carbW/fatW：0偏少 1正常 2偏多 3很多），该餐按偏好侧重对应营养
 6. foodName / exerciseName 必须与库中名字完全一致，否则视为无效
-7. 不要在 JSON 之外输出任何解释、Markdown、思考过程——直接输出 JSON`;
+7. 不要在 JSON 之外输出任何解释、Markdown、思考过程——直接输出 JSON
+${mode === 'diet' ? '8. 【本次只生成饮食部分】days 每项只需输出 diet 字段，workout 一律省略（不输出）。' : mode === 'workout' ? '8. 【本次只生成训练部分】days 每项只需输出 workout 字段，diet 一律省略（不输出）。' : ''}`;
   return aiFetch({ model: s.aiModel, messages: [{ role: 'system', content: system }, { role: 'user', content: JSON.stringify(prompt) }], temperature: 0.7, max_tokens: 6000, response_format: { type: 'json_object' } }, '计划生成');
 }
 
 /* AI 30 天计划 → 内部结构（AI 未覆盖的天数用本地引擎补足；休息日强制无训练；营养校准贴合目标） */
-function mapAiPlan(parsed) {
+function mapAiPlan(parsed, only) { // only: undefined=全部 | 'diet' | 'workout'
   const p = state.profile, dp = state.dietPlan, wp = state.workoutPlan;
   const plan = { generatedAt: new Date().toISOString(), mode: 'ai', days: {} };
   const week0 = todayStr(); // 从今天开始连续 30 天
   const aiDays = parsed.days || [];
   const dayTarget = { kcal: dp.kcal, protein: dp.protein, fat: dp.fat, carb: dp.carb, deficit: tdee(p) + (wp.kcal || 0) - dp.kcal };
   const fillFoodIds = dp.foodIds.length ? dp.foodIds : state.foods.filter(f => ['carb', 'protein', 'veg'].includes(f.cat)).map(f => f.id);
+  const doDiet = !only || only === 'diet';
+  const doWorkout = !only || only === 'workout';
   for (let i = 0; i < 30; i++) {
     const date = addDays(week0, i);
     const cyc = cycleInfo(wp.splitType, i);
     const dayType = cyc.type;
     const d = aiDays[i];
     let diet = [], workout = [];
-    if (d && (d.diet || []).length) {
-      diet = (d.diet || []).map(it => {
-        const f = state.foods.find(f => f.name === it.foodName) || state.foods.find(f => f.name.includes(it.foodName));
-        const mealDef = MEAL_DEF.find(m => m.key === it.meal);
-        return { foodId: f ? f.id : state.foods[0].id, grams: it.grams, meal: it.meal, time: mealDef ? mealDef.time : '12:00', mealLabel: mealDef ? mealDef.label : '加餐', fixed: true };
-      });
-      workout = (d.workout || []).map(w => {
-        const ex = state.exercises.find(e => e.name === w.exerciseName) || state.exercises.find(e => e.name.includes(w.exerciseName));
-        return { exId: ex ? ex.id : state.exercises[0].id, minutes: w.minutes || 30, sets: w.sets || 3, reps: w.reps || '8-12', rest: 90, cat: ex ? ex.cat : 'cardio', time: '20:00' };
-      });
-    } else {
-      MEAL_DEF.forEach(m => {
-        const pref = (dp.meals || {})[m.key];
-        diet.push(...buildMeal(fillFoodIds, m.ratio, dayTarget, pref).map(it => ({ ...it, meal: m.key, time: m.time, mealLabel: m.label })));
-      });
+    if (doDiet) {
+      if (d && (d.diet || []).length) {
+        diet = (d.diet || []).map(it => {
+          const f = state.foods.find(f => f.name === it.foodName) || state.foods.find(f => f.name.includes(it.foodName));
+          const mealDef = MEAL_DEF.find(m => m.key === it.meal);
+          return { foodId: f ? f.id : state.foods[0].id, grams: it.grams, meal: it.meal, time: mealDef ? mealDef.time : '12:00', mealLabel: mealDef ? mealDef.label : '加餐', fixed: true };
+        });
+      } else {
+        MEAL_DEF.forEach(m => {
+          const pref = (dp.meals || {})[m.key];
+          diet.push(...buildMeal(fillFoodIds, m.ratio, dayTarget, pref).map(it => ({ ...it, meal: m.key, time: m.time, mealLabel: m.label })));
+        });
+      }
+      diet = calibrateDiet(diet, dayTarget);
     }
-    // 确定性修正：严格按周计划——休息日强制无训练；训练日若 AI 未安排则按类型补齐
-    if (dayType === 'rest') workout = [];
-    else if (!workout.length) workout = buildDayWorkout(dayType, cyc.parts || []);
-    // 确定性修正：营养校准（贴合每日目标热量，偏差 >6% 按比例缩放克数）
-    diet = calibrateDiet(diet, dayTarget);
+    if (doWorkout) {
+      if (d && (d.workout || []).length) {
+        workout = (d.workout || []).map(w => {
+          const ex = state.exercises.find(e => e.name === w.exerciseName) || state.exercises.find(e => e.name.includes(w.exerciseName));
+          return { exId: ex ? ex.id : state.exercises[0].id, minutes: w.minutes || 30, sets: w.sets || 3, reps: w.reps || '8-12', rest: 90, cat: ex ? ex.cat : 'cardio', time: '20:00' };
+        });
+      }
+      // 确定性修正：严格按周计划——休息日强制无训练；训练日若 AI 未安排则按类型补齐
+      if (dayType === 'rest') workout = [];
+      else if (!workout.length) workout = buildDayWorkout(dayType, cyc.parts || []);
+    }
     plan.days[date] = { diet, workout };
   }
   return plan;
 }
 
 /* 一键生成：串行三步（30 天计划 → 阶段预测 → AI 建议），进度弹窗展示 */
-async function generatePlan() {
-  const btn = $('#btnGenerate'), txt = $('#genBtnText');
-  if (btn.disabled) return; // 防重复点击
-  btn.disabled = true; txt.textContent = '生成中…';
+/* 生成 30 天计划的一部分（'diet' 饮食 / 'workout' 训练），只覆盖对应域，互不影响 */
+async function genPlanPart(mode) {
+  const label = mode === 'diet' ? '饮食' : '训练';
+  const btn = document.getElementById(mode === 'diet' ? 'btnGenDiet' : 'btnGenWorkout');
+  if (btn && btn.disabled) return;
+  if (btn) btn.disabled = true;
+  if (!state || state === null) state = defaultState(); // 兜底：防止初始化竞态导致 state 为 null
   const prog = openProgressModal();
   try {
-    // ── 步骤 1/3：生成 30 天计划 ──
-    prog.set(0, 5, '正在生成 30 天计划…');
+    prog.set(0, 8, `正在生成 30 天${label}计划…`);
+    if (!state.plan || !state.plan.days) state.plan = { generatedAt: new Date().toISOString(), mode: 'local', days: {} };
+    // 保证 30 天骨架存在（从今天起）
+    const keys = [];
+    for (let i = 0; i < 30; i++) { const dt = addDays(todayStr(), i); if (!state.plan.days[dt]) state.plan.days[dt] = { diet: [], workout: [] }; keys.push(dt); }
+    let fresh = buildLocalPlan(mode);
     const hasKey = await resolveAIKey();
     if (hasKey) {
-      try {
-        state.plan = mapAiPlan(await aiGeneratePlan());
-      } catch (e) {
-        console.warn('AI 计划生成失败，降级本地：', e.message);
-        state.plan = buildLocalPlan();
-      }
-    } else {
-      state.plan = buildLocalPlan();
+      try { fresh = mapAiPlan(await aiGeneratePlan(mode), mode); }
+      catch (e) { console.warn(`AI ${label}计划失败，降级本地：`, e.message); }
     }
-    state.suggestions = []; // 单独生成
-    prog.set(0, 55, '30 天计划已生成');
-    // ── 步骤 2/2：AI 建议 ──
-    prog.set(1, 75, '正在生成 AI 建议…');
-    state.suggestions = await fetchSuggestions();
-    prog.done('全部完成');
+    for (const dt of keys) state.plan.days[dt][mode] = (fresh.days[dt] || {})[mode] || [];
+    state.plan.generatedAt = new Date().toISOString();
+    prog.set(0, 92, `${label}计划已生成`);
     saveState();
-    renderWeek(); renderDayTimeline(); renderSuggestions();
-    toast('计划与建议已生成', 'ok');
+    renderWeek(); renderDayTimeline();
+    prog.done('完成');
+    toast(`${label}计划已生成（30 天）`, 'ok');
   } catch (e) {
-    // 兜底：确保有计划与建议
-    if (!state.plan) state.plan = buildLocalPlan();
-    if (!state.suggestions || !state.suggestions.length) state.suggestions = localSuggestions();
-    saveState();
-    renderWeek(); renderDayTimeline(); renderSuggestions();
-    toast('生成完成（部分降级）', 'err');
+    console.error(`[genPlanPart ${mode}] 失败：`, e);
+    if (!state.plan) state.plan = { generatedAt: new Date().toISOString(), mode: 'local', days: {} };
+    saveState(); renderWeek(); renderDayTimeline();
+    prog.done('完成');
+    toast(`${label}计划生成失败：${e.message}`, 'err');
   } finally {
     prog.close();
-    btn.disabled = false; txt.textContent = '重新生成计划';
+    if (btn) btn.disabled = false;
   }
 }
 function localSuggestions() {
@@ -2662,32 +2898,39 @@ function renderWeek() {
     </div>`;
   }).join('');
   $$('#weekDays .day-chip').forEach(c => c.addEventListener('click', () => { activeDate = c.dataset.date; renderWeek(); renderDayTimeline(); }));
-  $('#dayLabel').textContent = `本周 · ${w0.slice(5).replace('-', '月')}日 — ${addDays(w0, 6).slice(5).replace('-', '月')}日`;
 }
 let activeDate = todayStr();
 let activeDayIdx = (new Date().getDay() + 6) % 7;
 
-/* ---------- 当日时间轴渲染（饮食 + 训练 混合） ---------- */
+/* ---------- 当日计划渲染（饮食计划 / 训练计划 分两卡） ---------- */
 function renderDayTimeline() {
-  const wrap = $('#dayTimeline');
   const date = activeDate;
   const day = state.plan?.days?.[date];
-  $('#dayLabel').textContent = `${date} ${WEEKDAY_CN[(new Date(date + 'T00:00:00').getDay() + 6) % 7]}${day ? (day.workout.length ? ' · 训练日' : ' · 休息日') : ''}`;
+  const wd = WEEKDAY_CN[(new Date(date + 'T00:00:00').getDay() + 6) % 7];
+  const dl = $('#dayLabelDiet'), wl = $('#dayLabelWorkout');
+  if (dl) dl.textContent = `${date} ${wd}`;
+  if (wl) wl.textContent = `${date} ${wd}${day ? (day.workout.length ? ' · 训练日' : ' · 休息日') : ''}`;
+  const db = $('#dietDayBox'), wb = $('#workoutDayBox');
+  if (!db || !wb) return;
+  const emptyBox = (text) => `<div class="card"><div class="empty-hint">${text}</div></div>`;
   if (!day) {
-    wrap.innerHTML = `<div class="card"><div class="empty-hint"><b>当天还没有计划</b>点击右上角「一键生成计划」生成完整 30 天方案</div></div>`;
+    db.innerHTML = emptyBox('<b>还没有生成饮食计划</b>点击右上角「生成饮食计划」');
+    wb.innerHTML = emptyBox('<b>还没有生成运动计划</b>点击右上角「生成运动计划」');
     return;
   }
-  // 时间轴节点：饮食按餐聚合、训练按条，按时间排序混排
-  const mealKeys = [...new Set(day.diet.map(d => d.meal))];
-  const nodes = [];
-  mealKeys.forEach(mk => {
-    const items = day.diet.filter(d => d.meal === mk);
-    nodes.push({ type: 'diet', time: items[0]?.time || '12:00', meal: mk, items });
-  });
-  day.workout.forEach((w, i) => nodes.push({ type: 'workout', time: w.time || '20:00', wi: i, item: w }));
-  nodes.sort((a, b) => a.time.localeCompare(b.time) || (a.type === 'workout' ? 1 : -1));
-  wrap.innerHTML = `<div class="timeline">` + nodes.map((n, ni) => n.type === 'diet' ? dietTimelineItem(n, ni) : workoutTimelineItem(n, ni)).join('') + `</div>`;
-  requestAnimationFrame(() => renderDonuts(wrap));
+  // 饮食卡：按餐聚合（时间正序）
+  const dietNodes = [...new Set((day.diet || []).map(x => x.meal))]
+    .map(mk => { const items = day.diet.filter(d => d.meal === mk); return { type: 'diet', time: items[0]?.time || '12:00', meal: mk, items }; })
+    .sort((a, b) => a.time.localeCompare(b.time));
+  db.innerHTML = dietNodes.length
+    ? `<div class="timeline">${dietNodes.map((n, ni) => dietTimelineItem(n, ni)).join('')}</div>`
+    : emptyBox('<b>当天没有饮食安排</b>可点「生成饮食计划」或用下方 + 添加食物');
+  // 训练卡：单条列表
+  const workoutNodes = (day.workout || []).map((w, i) => ({ type: 'workout', time: w.time || '20:00', wi: i, item: w }));
+  wb.innerHTML = workoutNodes.length
+    ? `<div class="timeline">${workoutNodes.map((n, ni) => workoutTimelineItem(n, ni)).join('')}</div>`
+    : emptyBox('<b>当天没有训练安排</b>休息日，或先点「生成运动计划」');
+  requestAnimationFrame(() => { renderDonuts(db); renderDonuts(wb); });
 }
 
 /* 饮食时间轴节点：该餐所有食物条目 + 营养 donut */
@@ -2836,7 +3079,7 @@ async function aiSuggestions() {
 
 /* ---------- 饮食/训练条目编辑（时间轴内增删改） ---------- */
 function bindTimelineActions() {
-  $('#dayTimeline').addEventListener('click', e => {
+  const timelineClick = e => {
     const addMeal = e.target.closest('[data-add-meal]');
     const addEx = e.target.closest('[data-add-ex]');
     const opBtn = e.target.closest('[data-op]');
@@ -2857,7 +3100,8 @@ function bindTimelineActions() {
       else if (op === 'edit-ex') { const wi = +entry.dataset.wi; openEditExerciseModal(wi); }
       else if (op === 'del-ex') { day.workout.splice(+entry.dataset.wi, 1); saveState(); renderDayTimeline(); }
     }
-  });
+  };
+  ['#dietDayBox', '#workoutDayBox'].forEach(sel => { const el = $(sel); if (el) el.addEventListener('click', timelineClick); });
 }
 function openAddFoodModal(meal) {
   const mealLabel = MEAL_DEF.find(x => x.key === meal)?.label || meal;
@@ -3055,7 +3299,7 @@ function openPlanSettings() {
       </div>
       <div class="mini" id="ps-kg-summary" style="margin-top:8px;color:var(--text-3)"></div>
     </div>
-    <p class="ps-note">${iconSvg('ui-info', 'currentColor', 13)} 保存后请重新「一键生成计划」，AI 将按周期输出训练与饮食安排。</p>
+    <p class="ps-note">${iconSvg('ui-info', 'currentColor', 13)} 保存后请在首页点「生成饮食计划 / 生成运动计划」，AI 将按新参数重新输出。</p>
     <div class="modal-foot"><button class="btn ghost" onclick="closeModal()">取消</button><button class="btn" id="ps-save">保存</button></div>
   `);
   m.classList.add('modal-plan');
@@ -3109,7 +3353,7 @@ function openPlanSettings() {
     state.dietPlan.kcal = state.dietPlan.protein * 4 + state.dietPlan.fat * 9 + state.dietPlan.carb * 4;
     saveState();
     syncPlanInputs();
-    closeModal(); toast('参数已保存，重新「一键生成计划」生效', 'ok');
+    closeModal(); toast('参数已保存，重新「生成饮食/运动计划」生效', 'ok');
   });
 }
 
@@ -3136,23 +3380,20 @@ function renderCalorieDeficit(burnOverride) {
   const p = state.profile, dp = state.dietPlan, wp = state.workoutPlan;
   const burn = burnOverride != null ? Math.max(0, +burnOverride || 0) : (wp.kcal || 0);
   const intake = dp.kcal || 0;
-  const b = Math.round(bmr(p));
-  const t = Math.round(tdee(p));
-  const deficit = Math.round(t + burn - intake);
+  const deficit = Math.round(tdee(p) + burn - intake);
   const isDeficit = deficit > 0;
-  const weekly = deficit * 7 / 7700;
-  const item = (k, v, unit) => `<span class="df-item"><span class="df-k">${k}</span><b>${v}</b><i>${unit}</i></span>`;
+  const weeklyFat = isDeficit ? deficit * 7 / 7700 : 0;
+  /* 每周肌肉流失估算：减脂 × 肌肉流失比例（蛋白质越足流失越少）
+     行业经验：蛋白质 ≥1.6 g/kg → 约 15%；1.4-1.6 → 25%；<1.4 → 40% */
+  const w = p.weight || 66;
+  const protKg = dp.proteinPerKg || Math.round(((dp.protein || 130) / w) * 100) / 100;
+  const leanFraction = protKg >= 1.6 ? 0.15 : protKg >= 1.4 ? 0.25 : 0.4;
+  const weeklyMuscle = weeklyFat * leanFraction;
   el.innerHTML = `
     <div class="def-block">
-      <div class="def-formula">
-        ${item('基础代谢', b, 'kcal')}<span class="df-op">+</span>
-        ${item('活动系数 ×' + p.activity, t, 'kcal')}<span class="df-op">+</span>
-        ${item('运动消耗', burn, 'kcal')}<span class="df-op">−</span>
-        ${item('摄入目标', intake, 'kcal')}<span class="df-op">=</span>
-        <span class="df-result ${isDeficit ? 'pos' : 'neg'}"><span class="df-k">每日${isDeficit ? '热量缺口' : '热量盈余'}</span><b>${Math.abs(deficit)}</b><i>kcal</i></span>
-      </div>
+      <span class="df-result ${isDeficit ? 'pos' : 'neg'}"><span class="df-k">每日${isDeficit ? '热量缺口' : '热量盈余'}</span><b>${Math.abs(deficit)}</b><i>kcal</i></span>
       <div class="def-tip">${isDeficit
-        ? `预计每周减脂约 <b>${fmt(weekly, 2)} kg</b>（7700 kcal ≈ 1kg 脂肪）`
+        ? `预计每周减脂约 <b>${fmt(weeklyFat, 2)} kg</b> · 每周肌肉流失预计 <b>${fmt(weeklyMuscle, 2)} kg</b>`
         : `<b style="color:var(--bad)">当前无减脂缺口</b>——需降低摄入目标或增加运动消耗，否则按现有计划无法有效减脂`}</div>
     </div>`;
   renderWeeklyLoss(); // 同步更新运动日历旁的周减脂预估
@@ -3246,6 +3487,11 @@ function initEvents() {
   $('#userChip').addEventListener('click', doLogout);
   // 设置页退出登录（手机端入口）
   $('#btnLogout').addEventListener('click', doLogout);
+  // 设置页用户管理（管理员新增用户）
+  const umAdd = document.getElementById('umAdd');
+  if (umAdd) umAdd.addEventListener('click', addUser);
+  const umName = document.getElementById('umNewName');
+  if (umName) umName.addEventListener('keydown', e => { if (e.key === 'Enter') addUser(); });
   // 导航
   $$('.nav-item, .tb-item').forEach(b => b.addEventListener('click', () => switchPage(b.dataset.nav)));
   // 主题
@@ -3259,10 +3505,31 @@ function initEvents() {
   $('#btnPrevWeek').addEventListener('click', () => { weekOffset--; renderWeek(); });
   $('#btnNextWeek').addEventListener('click', () => { weekOffset++; renderWeek(); });
   // 生成
-  $('#btnGenerate').addEventListener('click', generatePlan);
+  $('#btnGenDiet').addEventListener('click', () => genPlanPart('diet'));
+  $('#btnGenWorkout').addEventListener('click', () => genPlanPart('workout'));
   $('#btnPlanCustom').addEventListener('click', openPlanSettings);
-  // 一周食谱
-  $('#btnGenWeekMenu').addEventListener('click', generateWeekMenu);
+  // 食物库：批量选择操作栏（加入早/午餐、删除已选、清除）
+  const fbM = document.getElementById('fbAddMorning'), fbN = document.getElementById('fbAddNoon'),
+        fbD = document.getElementById('fbDel'), fbC = document.getElementById('fbClear');
+  if (fbM) fbM.addEventListener('click', () => batchAddPool('morning'));
+  if (fbN) fbN.addEventListener('click', () => batchAddPool('noon'));
+  if (fbD) fbD.addEventListener('click', batchDelFoods);
+  if (fbC) fbC.addEventListener('click', clearFoodSel);
+  // 右下角悬浮圆按钮「回到顶部」（桌面/移动均显示，CSS 按 page.active 控制对应库）
+  [document.getElementById('fbToTopFab'), document.getElementById('libToTopFab')].forEach(b => {
+    if (!b) return;
+    b.addEventListener('click', () => {
+      const head = b.id === 'fbToTopFab'
+        ? document.querySelector('#page-diet .lib-head.sticky')
+        : document.querySelector('#page-workout .lib-head.sticky');
+      if (head) head.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+  // 运动库批量条（勾选后 加入/移出偏好运动）
+  const lbA = document.getElementById('lbAddPref'), lbR = document.getElementById('lbRmPref'), lbC = document.getElementById('lbClearSel');
+  if (lbA) lbA.addEventListener('click', batchAddPref);
+  if (lbR) lbR.addEventListener('click', batchRmPref);
+  if (lbC) lbC.addEventListener('click', clearLibSel);
   // 食物库
   $('#btnAddFood').addEventListener('click', () => openFoodModal());
   // 摄入计划
@@ -3301,35 +3568,94 @@ function hideLogin() {
   $('#appShell').classList.remove('hidden');
 }
 function renderUserChip() {
-  $('#userName').textContent = currentUser || '未登录';
+  $('#userName').textContent = (currentUser || '未登录') + (currentRole === 'admin' ? ' · 管理员' : '');
   $('#userAvatar').textContent = (currentUser || '?').slice(0, 1).toUpperCase();
   const su = $('#setUserName');
-  if (su) su.textContent = currentUser || '未登录';
+  if (su) su.textContent = (currentUser || '未登录') + (currentRole === 'admin' ? '（管理员）' : '');
 }
 function doLogin() {
   const u = $('#loginUser').value.trim().toLowerCase();
   const pw = $('#loginPass').value;
   if (!u || !pw) { $('#loginErr').textContent = '请输入用户名和密码'; $('#loginErr').classList.add('show'); return; }
-  if (!verifyUser(u, pw)) {
-    $('#loginErr').textContent = '用户名或密码错误';
-    $('#loginErr').classList.add('show');
-    $('#loginPass').value = '';
-    $('#loginPass').focus();
-    return;
-  }
-  currentUser = u;
-  setSession(u);
-  hideLogin();
-  renderUserChip();
-  initUserData();
+  fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ user: u, pass: pw }) })
+    .then(r => r.json().then(j => ({ ok: r.ok, j })))
+    .then(({ ok, j }) => {
+      if (!ok || !j.ok) {
+        $('#loginErr').textContent = (j && j.error) || '用户名或密码错误';
+        $('#loginErr').classList.add('show');
+        $('#loginPass').value = '';
+        $('#loginPass').focus();
+        return;
+      }
+      currentUser = j.user; currentRole = j.role || 'user';
+      setSession({ token: j.token, user: j.user, role: currentRole });
+      hideLogin();
+      renderUserChip();
+      setupRoleUI();
+      initUserData();
+    })
+    .catch(() => { $('#loginErr').textContent = '无法连接服务器'; $('#loginErr').classList.add('show'); });
 }
-function doLogout() {
+async function doLogout() {
   if (!currentUser) return;
   if (!confirm(`退出登录「${currentUser}」？`)) return;
+  try { await fetch('/api/logout', { method: 'POST', headers: authHeaders() }); } catch (e) { /* ignore */ }
   clearSession();
-  currentUser = null;
+  currentUser = null; currentRole = 'user';
   state = defaultState();
   showLogin();
+}
+/* 登录态 UI：管理员才显示「用户管理」并拉列表 */
+function setupRoleUI() {
+  const box = document.getElementById('userMgmtWrap');
+  if (box) box.style.display = isAdmin() ? '' : 'none';
+  if (isAdmin()) renderUserMgmt();
+}
+/* 用户管理（仅管理员，服务端亦校验 role）：渲染用户列表 */
+async function renderUserMgmt() {
+  const listEl = document.getElementById('umList');
+  if (!listEl) return;
+  listEl.innerHTML = '<div class="mini" style="color:var(--text-3)">加载中…</div>';
+  try {
+    const r = await fetch('/api/users', { headers: authHeaders() });
+    if (r.status === 401) { handleSessionExpired(); return; }
+    if (!r.ok) { listEl.innerHTML = '<div class="mini">仅管理员可查看</div>'; return; }
+    const j = await r.json();
+    const users = (j.data || []).map(u => {
+      const isSelf = u.username === currentUser;
+      const delBtn = (u.role === 'admin' || isSelf) ? '' :
+        `<button class="btn danger sm" data-umdel="${esc(u.username)}">删除</button>`;
+      return `<div class="setting-row">
+        <div><div class="s-l">${esc(u.username)} ${u.role === 'admin' ? '<span class="badge" style="background:#eef2ff;color:#4338ca;padding:1px 8px;border-radius:999px;font-size:11px">管理员</span>' : '<span class="badge" style="background:#f0fdf4;color:#15803d;padding:1px 8px;border-radius:999px;font-size:11px">普通用户</span>'}${isSelf ? ' <span class="mini" style="color:var(--text-3)">(当前登录)</span>' : ''}</div>
+        <div class="s-d">${(u.created_at || '').slice(0, 10)} 创建 · 密码统一 442299</div></div>
+        ${delBtn}
+      </div>`;
+    }).join('');
+    listEl.innerHTML = users || '<div class="mini" style="color:var(--text-3)">暂无用户</div>';
+    listEl.querySelectorAll('[data-umdel]').forEach(b => b.addEventListener('click', () => delUser(b.dataset.umdel)));
+  } catch (e) { listEl.innerHTML = '<div class="mini">加载失败</div>'; }
+}
+async function addUser() {
+  const name = (document.getElementById('umNewName').value || '').trim().toLowerCase();
+  if (!name) { toast('请输入用户名', 'warn'); return; }
+  try {
+    const r = await fetch('/api/users', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify({ username: name }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) { toast((j && j.error) || '新增失败', 'err'); return; }
+    document.getElementById('umNewName').value = '';
+    toast(j.msg || `用户 ${name} 已创建`, 'ok');
+    renderUserMgmt();
+  } catch (e) { toast('新增失败：' + e.message, 'err'); }
+}
+async function delUser(name) {
+  if (!confirm(`确认删除用户「${name}」？\n其全部数据将被清除，不可恢复。`)) return;
+  try {
+    const r = await fetch('/api/users/' + encodeURIComponent(name), { method: 'DELETE', headers: authHeaders() });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ok) { toast((j && j.error) || '删除失败', 'err'); return; }
+    toast(j.msg || `已删除 ${name}`, 'ok');
+    renderUserMgmt();
+  } catch (e) { toast('删除失败：' + e.message, 'err'); }
 }
 
 /* 登录后加载用户数据并初始化应用 */
@@ -3398,10 +3724,12 @@ function migrateSettings() {
 (function boot() {
   initEvents();
   const session = getSession();
-  if (session && BUILTIN_USERS.some(x => x.username === session)) {
-    currentUser = session;
+  if (session && session.token && session.user) {
+    currentUser = session.user;
+    currentRole = session.role || 'user';
     renderUserChip(); // 须在 currentUser 赋值后渲染，否则刷新后账号显示"未登录"
     hideLogin();
+    setupRoleUI();
     initUserData();
     return;
   }
