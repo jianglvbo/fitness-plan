@@ -832,14 +832,8 @@ input[type=number]{-moz-appearance:textfield}
         <button class="btn sm" id="btnAddFood">＋ 新增食物</button>
       </div>
 
-      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>摄入计划<span class="sub">设定每日目标营养，保存后驱动饮食清单</span></div>
+      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>摄入计划<span class="sub">原料池驱动食谱生成 · 营养目标在「计划参数」中设置</span></div>
       <div class="card">
-        <div class="grid grid-3" style="margin-bottom:12px">
-          <div class="field"><label>蛋白质 (g/kg 体重)</label><input type="number" id="planProteinKg" min="0.5" max="4" step="0.1"></div>
-          <div class="field"><label>脂肪 (g/kg 体重)</label><input type="number" id="planFatKg" min="0.3" max="2" step="0.1"></div>
-          <div class="field"><label>碳水 (g/kg 体重)</label><input type="number" id="planCarbKg" min="0.5" max="8" step="0.1"></div>
-        </div>
-        <div class="mini" id="planKgSummary" style="margin-bottom:14px;color:var(--text-3)"></div>
         <div class="section-title" style="margin:6px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 11h8M3 16h8M11 5v14M14 9h3M14 13h4"/></svg>早餐原料（生成食谱时早餐从这批食材搭配）</div>
         <div id="morningFoods" class="grid grid-3" style="margin-bottom:6px"></div>
         <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方食物库勾选后点「加入早餐」添加原料</div>
@@ -878,13 +872,8 @@ input[type=number]{-moz-appearance:textfield}
         <button class="btn sm" id="btnAddExercise">＋ 新增运动</button>
       </div>
 
-      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>运动计划<span class="sub">设定每日运动目标，保存后驱动训练清单</span></div>
+      <div class="section-title"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>运动计划<span class="sub">偏好动作驱动训练清单 · 目标与分化在「计划参数」中设置</span></div>
       <div class="card">
-        <div class="grid grid-4" style="margin-bottom:16px">
-          <div class="field"><label>每日目标消耗 (kcal)</label><input type="number" id="woTargetKcal" min="0" step="20"></div>
-          <div class="field"><label>每日目标时长 (分钟)</label><input type="number" id="woTargetMin" min="0" step="5"></div>
-          <div class="field"><label>训练分化方案（周期自动循环）</label><select id="woSplit"><option value="split5">五分化：练5 + 有氧1 + 休1（7天循环）</option><option value="split3">三分化：练3 + 休1（4天循环）</option></select></div>
-        </div>
         <div class="section-title" style="margin:6px 0 12px;font-size:15px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px"><circle cx="13" cy="4.5" r="1.8"/><path d="M10 8.5l-3.5 1 .5 1.5L10 10l4 3 .5 6 2 .3.5-5.3L13 9l2-3.5-3-1-2 4z"/></svg>偏好运动（训练清单从中轮换）</div>
         <div id="planExercises" class="grid grid-3" style="margin-bottom:6px"></div>
         <div class="mini" style="color:var(--text-3);margin:2px 0 0">去下方运动库勾选后点「加入偏好」添加动作</div>
@@ -3288,6 +3277,10 @@ function openPlanSettings() {
         <div class="field"><label>每周运动量</label>${cxSelectHTML('ps-tier', tier, tierOpts)}</div>
         <div class="field"><label>分化方案</label>${cxSelectHTML('ps-split', wp.splitType === 'split3' ? 'split3' : 'split5', splitOpts)}</div>
       </div>
+      <div class="field-row" style="margin-top:12px">
+        <div class="field"><label>每日目标消耗 (kcal)</label><input type="number" id="ps-wo-kcal" value="${wp.kcal || 400}" min="0" step="20"></div>
+        <div class="field"><label>每日目标时长 (分钟)</label><input type="number" id="ps-wo-min" value="${wp.minutes || 45}" min="0" step="5"></div>
+      </div>
       <p class="mini" style="color:var(--text-3);margin:8px 0 0">五分化：5 天力量（胸/背/肩/腿/手臂）+ 1 天有氧 + 1 天休息；三分化：3 天力量（胸+二头/背+三头/肩+腿）+ 1 天休息</p>
     </div>
     <div class="ps-block">
@@ -3342,7 +3335,8 @@ function openPlanSettings() {
     });
     Object.assign(state.workoutPlan, {
       splitType: m.querySelector('.cx-select[data-cx="ps-split"]')?.dataset.val || 'split5',
-      volumeTier: tierV
+      volumeTier: tierV,
+      kcal: nn('#ps-wo-kcal', 400), minutes: nn('#ps-wo-min', 45)
     });
     const w = state.profile.weight || 66;
     const cKg = Math.max(0.5, +m.querySelector('#ps-carb-kg').value || 3), pKg = Math.max(0.5, +m.querySelector('#ps-protein-kg').value || 1.6), fKg = Math.max(0.3, +m.querySelector('#ps-fat-kg').value || 0.8);
@@ -3359,20 +3353,7 @@ function openPlanSettings() {
 
 /* 摄入计划 / 运动计划表单与页面输入同步 */
 function syncPlanInputs() {
-  const dp = state.dietPlan;
-  $('#planProteinKg').value = dp.proteinPerKg; $('#planFatKg').value = dp.fatPerKg; $('#planCarbKg').value = dp.carbPerKg;
-  updatePlanKgSummary();
-  $('#woTargetKcal').value = state.workoutPlan.kcal; $('#woTargetMin').value = state.workoutPlan.minutes;
-  const wsEl = $('#woSplit'); if (wsEl) wsEl.value = state.workoutPlan.splitType === 'split3' ? 'split3' : 'split5';
   renderCalorieDeficit();
-}
-/* 按体重百分比（g/kg）换算每日克数与热量 */
-function updatePlanKgSummary() {
-  const el = $('#planKgSummary'); if (!el) return;
-  const w = state.profile.weight || 66, dp = state.dietPlan;
-  const protein = Math.round((+dp.proteinPerKg || 0) * w), fat = Math.round((+dp.fatPerKg || 0) * w), carb = Math.round((+dp.carbPerKg || 0) * w);
-  const kcal = protein * 4 + fat * 9 + carb * 4;
-  el.innerHTML = `按体重 <b>${w} kg</b> 换算 → 蛋白质 <b>${protein}g</b> · 脂肪 <b>${fat}g</b> · 碳水 <b>${carb}g</b> · 每日热量 <b>${kcal} kcal</b>`;
 }
 /* 每日热量缺口实时计算：TDEE(BMR×活动系数) + 运动消耗 − 摄入目标 */
 function renderCalorieDeficit(burnOverride) {
@@ -3412,16 +3393,11 @@ function renderWeeklyLoss() {
   el.className = 'weekly-loss';
   el.innerHTML = `<div class="wl-label">预计每周减脂 <span class="wl-badge">按当前计划</span></div><div class="wl-num">${fmt(weekly, 2)}<span class="wl-unit"> kg/周</span></div><div class="wl-sub">每日热量缺口 ${deficit} kcal · 7700 kcal ≈ 1kg 脂肪</div>`;
 }
+/* 原料池/偏好池的改动已在勾选时即时保存，此处仅做一次显式落库与缺口刷新 */
 function saveDietPlanFromForm() {
-  const pKg = Math.max(0.5, +$('#planProteinKg').value || 1.6), fKg = Math.max(0.3, +$('#planFatKg').value || 0.8), cKg = Math.max(0.5, +$('#planCarbKg').value || 3);
-  const w = state.profile.weight || 66;
-  state.dietPlan = { ...state.dietPlan, proteinPerKg: pKg, fatPerKg: fKg, carbPerKg: cKg,
-    protein: Math.round(pKg * w), fat: Math.round(fKg * w), carb: Math.round(cKg * w) };
-  state.dietPlan.kcal = state.dietPlan.protein * 4 + state.dietPlan.fat * 9 + state.dietPlan.carb * 4;
-  saveState(); renderCalorieDeficit(); toast('摄入计划已保存（按体重百分比换算）', 'ok');
+  saveState(); renderCalorieDeficit(); toast('摄入计划已保存', 'ok');
 }
 function saveWorkoutPlanFromForm() {
-  state.workoutPlan = { ...state.workoutPlan, kcal: +$('#woTargetKcal').value || 400, minutes: +$('#woTargetMin').value || 45, splitType: $('#woSplit') ? $('#woSplit').value : (state.workoutPlan.splitType || 'split5') };
   saveState(); renderCalorieDeficit(); toast('运动计划已保存', 'ok');
 }
 
@@ -3541,8 +3517,6 @@ function initEvents() {
   $('#foodKw').addEventListener('input', renderFoods);
   $('#foodAddedOnly').addEventListener('click', () => { $('#foodAddedOnly').classList.toggle('active'); renderFoods(); });
   $('#libAddedOnly').addEventListener('click', () => { $('#libAddedOnly').classList.toggle('active'); LIB_PAGE = 1; renderLibrary(); });
-  // 运动消耗输入实时联动热量缺口计算
-  $('#woTargetKcal').addEventListener('input', e => renderCalorieDeficit(e.target.value));
   // 设置
   $('#btnToggleKey').addEventListener('click', () => { const i = $('#aiKey'); i.type = i.type === 'password' ? 'text' : 'password'; });
   $('#btnTestAI').addEventListener('click', testAI);
