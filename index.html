@@ -1676,7 +1676,7 @@ function renderLibrary() {
     const part = x.bodyPart || '';
     const pref = libAdded(x.srcId);
     return `
-    <div class="lib-card lib-ex-card${sel ? ' sel' : ''}" data-src="${esc(x.srcId)}">
+    <div class="lib-card lib-ex-card${sel ? ' sel' : ''}" data-src="${esc(x.srcId)}" onmouseenter="preloadGif('${esc(x.srcId)}','${esc(x.mediaId || '')}')">
       ${sel ? '<span class="fd-selmark">✓</span>' : ''}
       <div class="lc-row">
         <div class="gif-thumb" data-detail="${esc(x.srcId)}" title="点击查看大图"><img src="${MEDIA_BASE}/videos/${esc(x.srcId)}-${esc(x.mediaId || '')}.gif" alt="${esc(x.nameZh)}" loading="lazy"><span class="gt-zoom"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></span></div>
@@ -1699,19 +1699,39 @@ function renderLibrary() {
     if (card) toggleLibSel(card.dataset.src);
   };
 }
+let LIB_DETAIL_ID = '';
+/* 悬停预载：鼠标移入即开始下载 GIF，点开时已在缓存里 */
+function preloadGif(srcId, mediaId) { const im = new Image(); im.src = `${MEDIA_BASE}/videos/${srcId}-${mediaId || ''}.gif`; }
 async function showLibDetail(srcId) {
-  let x = LIB_ALL.find(i => i.srcId === srcId);
+  const x = LIB_ALL.find(i => i.srcId === srcId);
   if (!x) return;
-  // 列表数据不含 description/steps，按需拉取详情
+  renderLibDetail(x);   // ① 先用列表数据即时出图，不等网络
   try {
-    const r = await fetch(`/api/exercise-library?with_detail=1&keyword=${encodeURIComponent(x.name)}`, { signal: AbortSignal.timeout(8000) });
-    if (r.ok) { const j = await r.json(); if (j.ok && j.data.length) x = j.data[0]; }
-  } catch (e) { /* 详情拉取失败用列表数据 */ }
-  const steps = Array.isArray(x.steps) && x.steps.length ? x.steps.map((s, i) => `${i + 1}. ${esc(s)}`).join('<br>') : (x.description ? esc(x.description).replace(/\n/g, '<br>') : '暂无说明');
+    // ② 按主键补描述/步骤（旧实现用英文名全表 LIKE，慢且可能取到同名的其他变体）
+    const r = await fetch(`/api/exercise-library?with_detail=1&src_id=${encodeURIComponent(srcId)}`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j.ok && j.data && j.data.length) fillLibDetail(j.data[0]);
+  } catch (e) { /* 详情失败时保留列表信息 */ }
+}
+function libSteps(x) {
+  return Array.isArray(x.steps) && x.steps.length
+    ? x.steps.map((s, i) => `${i + 1}. ${esc(s)}`).join('<br>')
+    : (x.description ? esc(x.description).replace(/\n/g, '<br>') : '暂无说明');
+}
+/* 详情到达后只替换文字区，不重建 GIF 节点（避免重绘与闪烁） */
+function fillLibDetail(d) {
+  if (LIB_DETAIL_ID !== d.srcId) return;
+  const se = document.getElementById('ldSteps'); if (se) se.innerHTML = libSteps(d);
+  const sc = document.getElementById('ldSecondary');
+  if (sc && d.secondary) sc.innerHTML = `<b>次要肌群：</b>${esc(d.secondary)}`;
+}
+function renderLibDetail(x) {
+  LIB_DETAIL_ID = x.srcId;
   document.getElementById('libModalBody').innerHTML = `
     <div style="display:flex;gap:18px;flex-wrap:wrap">
       <div class="ld-gif">
-        <img src="${MEDIA_BASE}/videos/${esc(x.srcId)}-${esc(x.mediaId || '')}.gif" style="width:100%;border-radius:12px;display:block" loading="lazy" alt="${esc(x.nameZh)}">
+        <img src="${MEDIA_BASE}/videos/${esc(x.srcId)}-${esc(x.mediaId || '')}.gif" style="width:100%;border-radius:12px;display:block" alt="${esc(x.nameZh)}">
       </div>
       <div style="flex:1;min-width:240px">
         <div style="font-size:12px;color:var(--text-3, #999);margin-bottom:4px">动作 #${esc(x.srcId)}</div>
@@ -1722,12 +1742,12 @@ async function showLibDetail(srcId) {
           ${x.equipment ? `<span class="badge" style="background:#f0fdf4;color:#15803d;padding:3px 10px;border-radius:999px;font-size:12px">器械 · ${esc(x.equipment)}</span>` : ''}
           ${x.target ? `<span class="badge" style="background:#fdf2f8;color:#be185d;padding:3px 10px;border-radius:999px;font-size:12px">目标 · ${esc(x.target)}</span>` : ''}
         </div>
-        ${x.secondary ? `<div style="font-size:12px;color:var(--text-2, #666);margin-bottom:10px"><b>次要肌群：</b>${esc(x.secondary)}</div>` : ''}
+        <div id="ldSecondary" style="font-size:12px;color:var(--text-2, #666);margin-bottom:10px">${x.secondary ? `<b>次要肌群：</b>${esc(x.secondary)}` : ''}</div>
       </div>
     </div>
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--glass-border, #e5e7eb)">
       <div style="font-weight:700;font-size:14px;margin-bottom:8px;color:var(--text)">动作说明</div>
-      <div style="font-size:13px;line-height:1.8;color:var(--text-2, #444)">${steps}</div>
+      <div id="ldSteps" style="font-size:13px;line-height:1.8;color:var(--text-2, #444)">${libSteps(x)}</div>
     </div>`;
   document.getElementById('libModal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
