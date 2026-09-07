@@ -2076,17 +2076,23 @@ function clearLibSel() {
 }
 function batchAddPref() {
   if (!libSel.size) return;
-  let n = 0;
+  state.workoutPlan.exerciseIds = state.workoutPlan.exerciseIds || [];
+  let added = 0, already = 0;
   libSel.forEach(srcId => {
-    if (state.exercises.some(e => e.libId === srcId || e.id === 'lib-' + srcId)) return; // 已在偏好
     const x = LIB_ALL.find(i => i.srcId === srcId); if (!x) return;
-    const part = libPart(x.bodyPart);
-    state.exercises.push({ id: 'lib-' + x.srcId, name: x.nameZh || x.name, cat: 'strength', met: 4.5, icon: 'dumbbell', color: (BODY_PARTS[part] || {}).color || '#8b5cf6', part, gear: libGear(x.equipment), libId: x.srcId });
-    state.workoutPlan.exerciseIds.push('lib-' + x.srcId);
-    n++;
+    if (libAdded(srcId)) { already++; return; }                 // 判重只看偏好池
+    // 运动库里可能已有该动作（历史数据），复用其 id；没有才新建
+    let e = state.exercises.find(v => v.libId === srcId || v.id === 'lib-' + srcId);
+    if (!e) {
+      const part = libPart(x.bodyPart);
+      e = { id: 'lib-' + x.srcId, name: x.nameZh || x.name, cat: 'strength', met: 4.5, icon: 'dumbbell', color: (BODY_PARTS[part] || {}).color || '#8b5cf6', part, gear: libGear(x.equipment), libId: x.srcId };
+      state.exercises.push(e);
+    }
+    if (!state.workoutPlan.exerciseIds.includes(e.id)) state.workoutPlan.exerciseIds.push(e.id);
+    added++;
   });
-  if (!n) { toast('所选动作均已加入偏好运动', 'warn'); return; }
-  toast(`已加入 ${n} 个偏好动作`, 'ok');
+  if (!added) { toast(already ? '所选动作已在偏好运动中' : '所选动作不在动作库，请刷新后重试', 'warn'); return; }
+  toast(`已加入 ${added} 个偏好动作${already ? `，${already} 个已在其中` : ''}`, 'ok');
   clearLibSel(); saveState(); renderPlanExercises(); renderLibrary();
 }
 function batchRmPref() {
@@ -2191,7 +2197,13 @@ function libGear(eq) {
   if (/战绳/.test(eq)) return 'rope';
   return 'none';
 }
-function libAdded(srcId) { return state.exercises.some(e => e.libId === srcId || e.id === 'lib-' + srcId); }
+/* 是否已在「偏好运动」池中：先看池内 id，再兼容历史条目（池里存的是该动作的旧 id） */
+function libAdded(srcId) {
+  const ids = state.workoutPlan.exerciseIds || [];
+  if (ids.includes('lib-' + srcId)) return true;
+  const e = state.exercises.find(x => x.libId === srcId || x.id === 'lib-' + srcId);
+  return !!(e && ids.includes(e.id));
+}
 /* 动作卡加入/移除已迁移到批量勾选条（batchAddPref / batchRmPref）；部位/器械映射见上方 libPart/libGear */
 function openFoodModal(id = null) {
   const f = id ? foodById(id) : { name: '', sub: 'meat', kcal: 100, protein: 10, fat: 5, carb: 10, fiber: 1, icon: 'protein', color: '#6366f1' };
