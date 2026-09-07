@@ -1633,9 +1633,14 @@ async function loadLibrary() {
     if (!j.ok || !Array.isArray(j.data)) return;
     LIB_ALL = j.data;
     const bodySel = document.getElementById('libBody'), eqSel = document.getElementById('libEquip');
+    // 幂等重建：登录/重进会再次调用，先清空再填充，否则下拉项会整列重复
     if (bodySel) {
+      bodySel.innerHTML = '<option value="">全部部位</option>';
       const bodies = [...new Set(LIB_ALL.map(x => x.bodyPart).filter(Boolean))].sort();
       bodies.forEach(b => bodySel.insertAdjacentHTML('beforeend', `<option value="${esc(b)}">${esc(b)}</option>`));
+    }
+    if (eqSel) {
+      eqSel.innerHTML = '<option value="">全部器械</option>';
       const eqs = [...new Set(LIB_ALL.map(x => x.equipment).filter(Boolean))].sort();
       eqs.forEach(e => eqSel.insertAdjacentHTML('beforeend', `<option value="${esc(e)}">${esc(e)}</option>`));
     }
