@@ -1763,6 +1763,23 @@ function bmr(p) { return 10 * p.weight + 6.25 * p.height - 5 * p.age + 5; }
 function tdee(p) { return bmr(p) * (p.activity || 1.375); }
 function foodById(id) { return state.foods.find(f => f.id === id); }
 function exById(id) { return state.exercises.find(e => e.id === id); }
+/* 自愈：剔除原料池 / 偏好池中已不存在的食材与动作（同时去重），有变更即落库 */
+function pruneStaleRefs() {
+  const dp = state.dietPlan = state.dietPlan || {}, wp = state.workoutPlan = state.workoutPlan || {};
+  let removed = 0;
+  const keep = (arr, exists) => {
+    const src = Array.isArray(arr) ? arr : [];
+    const out = Array.from(new Set(src)).filter(exists);
+    removed += src.length - out.length;
+    return out;
+  };
+  dp.foodIds = keep(dp.foodIds, id => !!foodById(id));
+  dp.morningFoodIds = keep(dp.morningFoodIds, id => !!foodById(id));
+  dp.noonFoodIds = keep(dp.noonFoodIds, id => !!foodById(id));
+  wp.exerciseIds = keep(wp.exerciseIds, id => !!exById(id));
+  if (removed) saveState();
+  return removed;
+}
 /* 每百克营养 → 实际克数营养 */
 function foodNutrition(food, grams) { const k = grams / 100; return { kcal: food.kcal * k, protein: food.protein * k, fat: food.fat * k, carb: food.carb * k, fiber: food.fiber * k }; }
 /* 运动消耗：MET × 3.5 × 体重kg / 200 × 分钟 */
@@ -3651,6 +3668,7 @@ async function initUserData() {
   if (loaded) { /* 服务器数据覆盖 state，稍后再 applyTheme 一次 */ }
   migrateSettings();
   migrateFoodSubs(); migrateExerciseCats(); migratePlanParams();
+  pruneStaleRefs();   // 清掉库里已不存在的池项，避免偏好列表静默缺项
   // 动作库独立视图展示（loadLibrary），不合并进 state.exercises
   // AI key 显示占位（不暴露明文）
   $('#aiKey').value = ''; $('#aiKey').placeholder = state.settings.aiKey ? '已加密保存 · 如需更换请直接输入' : 'sk-...（保存时加密）';
@@ -3669,6 +3687,7 @@ async function initUserData() {
 function initApp() {
   loadState();
   migrateFoodSubs(); migrateExerciseCats(); migratePlanParams(); // 旧数据补齐子类/运动分类/计划参数
+  pruneStaleRefs();                                              // 剔除失效池项
   $('#aiKey').value = ''; $('#aiKey').placeholder = state.settings.aiKey ? '已加密保存 · 如需更换请直接输入' : 'sk-...（保存时加密）';
   $('#aiModel').value = state.settings.aiModel; $('#aiBase').value = state.settings.aiBase;
   applyTheme(); switchPage('plan');
